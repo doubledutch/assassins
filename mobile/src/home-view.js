@@ -70,7 +70,7 @@ export default class HomeView extends PureComponent {
       : this.state.users
     usersToShow.sort((a,b) => (this.state.killsBy[b.id] || 0) - (this.state.killsBy[a.id] || 0))
 
-    const killed = [].concat(...Object.keys(this.state.killsBy).map(by => this.state.killsBy[by]))
+    this.killed = [].concat(...Object.keys(this.state.killsBy).map(by => this.state.killsBy[by])).reduce((map, id) => { map[id] = true; return map }, {})
 
     return (
       <View style={s.container}>
@@ -94,7 +94,7 @@ export default class HomeView extends PureComponent {
     <View style={s.listPlayer}>
       <View>
         <Avatar user={item} size={60} />
-        <View style={s.killedXContainer}><Text style={s.killedX}>❌</Text></View>
+        { this.killed[item.id] && <View style={s.killedXContainer}><Text style={s.killedX}>❌</Text></View> }
       </View>
       <View style={s.listPlayerRight}>
         <View><Text style={s.listPlayerText}>{item.firstName} {item.lastName}</Text></View>
