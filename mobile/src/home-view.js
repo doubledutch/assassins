@@ -68,6 +68,9 @@ export default class HomeView extends PureComponent {
     const usersToShow = this.state.targets
       ? this.state.users.filter(u => this.state.targets[u.id])
       : this.state.users
+
+    const killed = [].concat(...Object.keys(this.state.killsBy).map(by => this.state.killsBy[by]))
+
     return (
       <View style={s.container}>
         <TitleBar title="Assassins" client={client} signin={this.signin} />
@@ -88,7 +91,10 @@ export default class HomeView extends PureComponent {
   _keyExtractor = u => u.id
   _renderListPlayer = ({item}) => (
     <View style={s.listPlayer}>
-      <Avatar user={item} size={60} />
+      <View>
+        <Avatar user={item} size={60} />
+        <View style={s.killedXContainer}><Text style={s.killedX}>❌</Text></View>
+      </View>
       <View style={s.listPlayerRight}>
         <View><Text style={s.listPlayerText}>{item.firstName} {item.lastName}</Text></View>
         { this.state.killsBy[item.id] && (
@@ -129,6 +135,21 @@ const s = ReactNative.StyleSheet.create({
   listPlayerText: {
     fontSize: 18,
     flex: 1
+  },
+  killedXContainer: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1
+  },
+  killedX: {
+    paddingLeft: 3,
+    fontSize: 35,
+    textAlign: 'center',
+    position: 'absolute',
+    backgroundColor: 'transparent'
   },
   killsIcon: {
     fontSize: 20
