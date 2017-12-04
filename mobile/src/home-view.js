@@ -3,6 +3,9 @@ import ReactNative, {
   Alert, FlatList, TouchableOpacity, Text, TextInput, View
 } from 'react-native'
 
+import QRCode from 'react-native-qrcode'
+import QRCodeScanner from 'react-native-qrcode-scanner'
+
 import Admin from './Admin'
 
 import client, { Avatar, TitleBar } from '@doubledutch/rn-client'
@@ -113,10 +116,22 @@ export default class HomeView extends PureComponent {
               : Object.keys(this.killed).length >= Object.keys(this.state.targets).length //- 1
                 ? <View style={s.me}><Text style={s.meText}>🥇 You are the last assassin standing! 🥇</Text></View>
                 : <View style={s.me}>
-                    <View>
-                      <Text style={s.centerText}>Your next target:</Text>
+                    <View style={s.scannerContainer}>
+                      {/* <QRCodeScanner onRead={this._onScan} /> */}
+                    </View>
+                    <View style={s.alignCenter}>
+                      <Text style={s.centerText}>Your target:</Text>
                       <Avatar user={yourTarget} size={100} />
                       <Text style={s.centerText}>{yourTarget.firstName} {yourTarget.lastName}</Text>
+                    </View>
+                    <View style={s.alignCenter}>
+                      <Text style={s.centerText}>Secret code:</Text>
+                      <QRCode
+                        value={JSON.stringify(client.currentUser)}
+                        size={100}
+                        bgColor='black'
+                        fgColor='white' />
+                      <Text style={s.centerText}>Forfeit if killed</Text>
                     </View>
                   </View>
             : <View style={s.me}><Text>Sorry, you're too late. The game is already afoot!</Text></View>
@@ -182,6 +197,10 @@ export default class HomeView extends PureComponent {
     return null
   }
 
+  _onScan = (code) => {
+    const scannedPlayer = JSON.parse(code)
+  }
+
   findAssassinIdFor(playerId) {
     if (!this.state.targets) return null
     const reverseTargets = Object.keys(this.state.targets)
@@ -206,7 +225,7 @@ const s = ReactNative.StyleSheet.create({
     padding: 10,
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'center'
+    justifyContent: 'space-around'
   },
   meText: {
     fontSize: 18
@@ -273,6 +292,14 @@ const s = ReactNative.StyleSheet.create({
     textAlign: 'center'
   },
   centerText: {
-    textAlign: 'center'
+    textAlign: 'center',
+    padding: 3
+  },
+  alignCenter: {
+    alignItems: 'center'
+  },
+  scannerContainer: {
+    height: 100, width: 100,
+    backgroundColor: client.primaryColor
   }
 })
