@@ -86,6 +86,7 @@ export default class HomeView extends PureComponent {
 
     this.killed = this._getKilled()
     const whoAssassinatedMe = this._whoAssassinatedMe()
+    const yourTarget = this.state.targets && this.state.users.find(u => u.id === this.state.targets[client.currentUser.id])
 
     return (
       <View style={s.container}>
@@ -96,7 +97,7 @@ export default class HomeView extends PureComponent {
             ? whoAssassinatedMe
               ? <View>
                   <Text style={s.dead}>DEAD!</Text>
-                  <Text style={s.deadDesc}>{whoAssassinatedMe.firstName} {whoAssassinatedMe.lastName} took you down{this.killed[whoAssassinatedMe.id] ? ' before also being eliminated' : ''}!</Text>
+                  <Text style={s.centerText}>{whoAssassinatedMe.firstName} {whoAssassinatedMe.lastName} took you down{this.killed[whoAssassinatedMe.id] ? ' before also being eliminated' : ''}!</Text>
                   <View style={s.me}>
                     <View>
                       <Avatar user={client.currentUser} size={100} />
@@ -109,9 +110,15 @@ export default class HomeView extends PureComponent {
                     </View>
                   </View>
                 </View>
-              : Object.keys(this.killed).length >= Object.keys(this.state.targets).length - 1
+              : Object.keys(this.killed).length >= Object.keys(this.state.targets).length //- 1
                 ? <View style={s.me}><Text style={s.meText}>🥇 You are the last assassin standing! 🥇</Text></View>
-                : <View style={s.me}>target info... TBD</View>
+                : <View style={s.me}>
+                    <View>
+                      <Text style={s.centerText}>Your next target:</Text>
+                      <Avatar user={yourTarget} size={100} />
+                      <Text style={s.centerText}>{yourTarget.firstName} {yourTarget.lastName}</Text>
+                    </View>
+                  </View>
             : <View style={s.me}><Text>Sorry, you're too late. The game is already afoot!</Text></View>
           : this.state.isSignedIn && <View style={s.me}><Text>Awaiting your first target...</Text></View>
         }
@@ -265,7 +272,7 @@ const s = ReactNative.StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center'
   },
-  deadDesc: {
+  centerText: {
     textAlign: 'center'
   }
 })
