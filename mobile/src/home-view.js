@@ -1,6 +1,6 @@
 import React, {PureComponent } from 'react'
 import ReactNative, {
-  FlatList, TouchableOpacity, Text, TextInput, View, ScrollView
+  Alert, FlatList, TouchableOpacity, Text, TextInput, View
 } from 'react-native'
 
 import Admin from './Admin'
@@ -13,6 +13,11 @@ const fbc = FirebaseConnector(client, 'assassins')
 fbc.initializeAppWithSimpleBackend()
 console.disableYellowBox = true
 
+const targetsRef = fbc.database.public.adminRef('targets')
+const killsRef = fbc.database.public.allRef('kills')
+const userRef = fbc.database.public.userRef('user')
+const usersRef = fbc.database.public.usersRef()
+
 export default class HomeView extends PureComponent {
   constructor() {
     super()
@@ -20,7 +25,7 @@ export default class HomeView extends PureComponent {
     this.state = {
       users: [],
       targets: null,
-      killsBy: {'24601': [client.currentUser.id]}
+      killsBy: {}
     }
 
     this.signin = fbc.signin().then(() => this.setState({isSignedIn: true}))
@@ -43,22 +48,31 @@ export default class HomeView extends PureComponent {
       })
 
       const wireListeners = () => {
-        fbc.database.public.usersRef().on('child_added', data => {
+        usersRef.on('child_added', data => {
           const user = data.val().user
           if (user) this.setState({users: [...this.state.users, user]})
         })
-  
-        fbc.database.public.userRef('user').set(client.currentUser)
-  
-        fbc.database.public.adminRef('targets').on('value', data => {
-          this.setState({targets: data.val()})
+        usersRef.on('value', data => { // Watch for removal of all users.
+          if (!data.val()) this.setState({users: []})
         })
   
-        fbc.database.public.allRef('kills').on('child_added', data => {
+        // Always signal that the player is in the game when it is open.
+        userRef.on('value', data => !data.val() && userRef.set(client.currentUser))
+  
+        targetsRef.on('value', data => {
+          this.setState({targets: data.val()})
+        })
+
+        killsRef.on('child_added', data => {
           const kill = data.val()
           this.setState({
             killsBy: {...this.state.killsBy, [kill.by]: this.state.killsBy[kill.by] ? [kill.target, ...this.state.killsBy[kill.by]] : [kill.target]}
           })
+        })
+
+        // Removes all kills
+        killsRef.on('value', data => {
+          if (!data.val()) this.setState({killsBy: {}})
         })
       }
     })
@@ -70,7 +84,8 @@ export default class HomeView extends PureComponent {
       : this.state.users
     usersToShow.sort((a,b) => (this.state.killsBy[b.id] || 0) - (this.state.killsBy[a.id] || 0))
 
-    this.killed = [].concat(...Object.keys(this.state.killsBy).map(by => this.state.killsBy[by])).reduce((map, id) => { map[id] = true; return map }, {})
+    this.killed = this._getKilled()
+    const whoAssassinatedMe = this._whoAssassinatedMe()
 
     return (
       <View style={s.container}>
@@ -78,16 +93,34 @@ export default class HomeView extends PureComponent {
         { this.state.isAdmin && <Admin users={this.state.users} targets={this.state.targets} fbc={fbc} /> }
         { this.state.targets
           ? this.state.targets[client.currentUser.id]
-            ? this.state.targets[client.currentUser.id] === client.currentUser.id
-              ? <View style={s.me}><Text style={s.meText}>🥇 You are the last assassin standing! 🥇</Text></View>
-              : <View style={s.me}>target info... TBD</View>
+            ? whoAssassinatedMe
+              ? <View>
+                  <Text style={s.dead}>DEAD!</Text>
+                  <Text style={s.deadDesc}>{whoAssassinatedMe.firstName} {whoAssassinatedMe.lastName} took you down{this.killed[whoAssassinatedMe.id] ? ' before also being eliminated' : ''}!</Text>
+                  <View style={s.me}>
+                    <View>
+                      <Avatar user={client.currentUser} size={100} />
+                      <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View>
+                    </View>
+                    <Text style={s.gun}>🔫</Text>
+                    <View>
+                      <Avatar user={whoAssassinatedMe} size={100} />
+                      { this.killed[whoAssassinatedMe.id] && <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View> }
+                    </View>
+                  </View>
+                </View>
+              : Object.keys(this.killed).length >= Object.keys(this.state.targets).length - 1
+                ? <View style={s.me}><Text style={s.meText}>🥇 You are the last assassin standing! 🥇</Text></View>
+                : <View style={s.me}>target info... TBD</View>
             : <View style={s.me}><Text>Sorry, you're too late. The game is already afoot!</Text></View>
           : this.state.isSignedIn && <View style={s.me}><Text>Awaiting your first target...</Text></View>
         }
-        <FlatList data={usersToShow} keyExtractor={this._keyExtractor} renderItem={this._renderListPlayer} />
+        <FlatList data={usersToShow} extraData={this.state.killsBy} keyExtractor={this._keyExtractor} renderItem={this._renderListPlayer} />
       </View>
     )
   }
+
+  _getKilled = () => [].concat(...Object.keys(this.state.killsBy).map(by => this.state.killsBy[by])).reduce((map, id) => { map[id] = true; return map }, {})
 
   _keyExtractor = u => u.id
   _renderListPlayer = ({item}) => (
@@ -97,7 +130,12 @@ export default class HomeView extends PureComponent {
         { this.killed[item.id] && <View style={s.killedXContainer}><Text style={s.killedX}>❌</Text></View> }
       </View>
       <View style={s.listPlayerRight}>
-        <View><Text style={s.listPlayerText}>{item.firstName} {item.lastName}</Text></View>
+        <View style={s.listPlayerName}>
+          <Text style={s.listPlayerText}>{item.firstName} {item.lastName}</Text>
+          { this.state.targets && this.state.isAdmin && !this.killed[item.id] && <TouchableOpacity onPress={() => this._adminMarkAssassinated(item)}>
+            <Text style={s.buttonText}>Mark dead</Text>
+          </TouchableOpacity> }
+        </View>
         { this.state.killsBy[item.id] && (
           <View style={s.kills}>
             <Text style={s.killsIcon}>🎯</Text>
@@ -108,6 +146,47 @@ export default class HomeView extends PureComponent {
       </View>
     </View>
   )
+
+  _adminMarkAssassinated(player) {
+    const assassinId = this.findAssassinIdFor(player.id)
+    const assassin = this.state.users.find(u => u.id === assassinId)
+    if (assassinId && assassin) {
+      Alert.alert(
+        `Mark ${player.firstName} assassinated by ${assassin.firstName}`,
+        'Use your admin powers to do this?',
+        [
+          {text: 'Cancel', style: 'cancel'},
+          {text: 'OK', onPress: () => {
+            this._markAssassinated(player, assassinId)
+          }},
+        ]
+      )
+    }
+  }
+
+  _markAssassinated(player, assassinId) {
+    if (!assassinId) assassinId = client.currentUser.id
+    killsRef.push({ by: assassinId, target: player.id })
+  }
+
+  _whoAssassinatedMe() {
+    const assassinId = Object.keys(this.state.killsBy).find(id => this.state.killsBy[id].includes(client.currentUser.id))
+    if (assassinId) return this.state.users.find(u => u.id === assassinId)
+    return null
+  }
+
+  findAssassinIdFor(playerId) {
+    if (!this.state.targets) return null
+    const reverseTargets = Object.keys(this.state.targets)
+      .map(assassinId => ({ assassinId, targetId: this.state.targets[assassinId] }))
+      .reduce((reverseTargets, {assassinId, targetId}) => { reverseTargets[targetId] = assassinId; return reverseTargets }, {})
+
+    const killed = this._getKilled()
+    let assassinId = reverseTargets[playerId]
+    while (assassinId !== playerId && killed[assassinId]) assassinId = reverseTargets[assassinId]
+    //if (assassinId === playerId) return null
+    return assassinId
+  }
 }
 
 const fontSize = 18
@@ -118,7 +197,9 @@ const s = ReactNative.StyleSheet.create({
   },
   me: {
     padding: 10,
-    alignItems: 'center'
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center'
   },
   meText: {
     fontSize: 18
@@ -133,6 +214,10 @@ const s = ReactNative.StyleSheet.create({
     marginHorizontal: 5,
     justifyContent: 'center'
   },
+  listPlayerName: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
   listPlayerText: {
     fontSize: 18,
     flex: 1
@@ -146,11 +231,18 @@ const s = ReactNative.StyleSheet.create({
     flex: 1
   },
   killedX: {
-    paddingLeft: 3,
+    paddingLeft: 4,
     fontSize: 35,
     textAlign: 'center',
     position: 'absolute',
     backgroundColor: 'transparent'
+  },
+  killedXBig: {
+    paddingLeft: 7,
+    fontSize: 60,
+    textAlign: 'center',
+    position: 'absolute',
+    backgroundColor: 'transparent'    
   },
   killsIcon: {
     fontSize: 20
@@ -162,48 +254,18 @@ const s = ReactNative.StyleSheet.create({
   killedAvatar: {
     marginRight: 3
   },
-  scroll: {
-    flex: 1,
-    padding: 15
+  buttonText: {
+    color: 'blue'
   },
-  task: {
-    flex: 1,
-    flexDirection: 'row',
-    marginBottom: 10
+  gun: {
+    fontSize: 60
   },
-  checkmark: {
-    textAlign: 'center',
-    fontSize
+  dead: {
+    fontSize: 60,
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
-  creatorAvatar: {
-    marginRight: 4
-  },
-  creatorEmoji: {
-    marginRight: 4,
-    fontSize
-  },
-  taskText: {
-    fontSize,
-    flex: 1
-  },
-  compose: {
-    height: 70,
-    flexDirection: 'row',
-    backgroundColor: 'white',
-    padding: 10
-  },
-  sendButtons: {
-    justifyContent: 'center',
-  },
-  sendButton: {
-    justifyContent: 'center',
-    margin: 5
-  },
-  sendButtonText: {
-    fontSize: 20,
-    color: 'gray'
-  },
-  composeText: {
-    flex: 1
+  deadDesc: {
+    textAlign: 'center'
   }
 })

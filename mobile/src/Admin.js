@@ -19,10 +19,10 @@ export default class Admin extends PureComponent {
           { targets
             ? (<View>
                 <Text>Game already started</Text>
-                <TouchableOpacity onPress={this._abortGame}><Text>Abort game</Text></TouchableOpacity>
+                <TouchableOpacity onPress={this._abortGame}><Text style={s.buttonText}>Abort game</Text></TouchableOpacity>
               </View>)
             : (<View>
-              <TouchableOpacity onPress={this._startGame}><Text>Start game with {users.length} players</Text></TouchableOpacity>
+              <TouchableOpacity onPress={this._startGame}><Text style={s.buttonText}>Start game with {users.length} players</Text></TouchableOpacity>
             </View>)}
         </View> }
         <View>
@@ -59,10 +59,24 @@ export default class Admin extends PureComponent {
       'Are you sure?',
       [
         {text: 'Cancel', style: 'cancel'},
-        {text: 'OK', onPress: () => this.props.fbc.database.public.adminRef('targets').remove()},
-      ],
-      { cancelable: false }
+        {text: 'OK', onPress: () => {
+          this.props.fbc.database.public.adminRef('targets').remove()
+          this.props.fbc.database.public.allRef('kills').remove()
+
+          Alert.alert(
+            'Clear players?',
+            'Do you also want to remove all players who do not currently have the game open? They will have to re-enter to be included in future games.',
+            [
+              {text: 'No', style: 'cancel'},
+              {text: 'Yes', onPress: () => this.props.fbc.database.public.usersRef().remove()}
+            ]
+          )
+        }},
+      ]
     )
+  }
+
+  _clearPlayers = () => {
   }
 }
 
@@ -79,5 +93,8 @@ const s = StyleSheet.create({
   },
   main: {
     padding: 10
+  },
+  buttonText: {
+    color: 'blue'
   }
 })
