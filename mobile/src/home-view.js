@@ -82,14 +82,15 @@ export default class HomeView extends PureComponent {
   }
 
   render() {
+    this.killed = this._getKilled()
+
     const usersToShow = this.state.targets
       ? this.state.users.filter(u => this.state.targets[u.id])
       : this.state.users
-    usersToShow.sort((a,b) => (this.state.killsBy[b.id] || 0) - (this.state.killsBy[a.id] || 0))
+    usersToShow.sort((a,b) => (this.killed[b.id] ? 0 : 10000) - (this.killed[a.id] ? 0 : 10000) + (this.state.killsBy[b.id] || 0) - (this.state.killsBy[a.id] || 0))
 
-    this.killed = this._getKilled()
     const whoAssassinatedMe = this._whoAssassinatedMe()
-    const yourTarget = this.state.targets && this.state.users.find(u => u.id === this.state.targets[client.currentUser.id])
+    const yourTarget = this._yourTarget()
 
     return (
       <View style={s.container}>
@@ -113,11 +114,13 @@ export default class HomeView extends PureComponent {
                     </View>
                   </View>
                 </View>
-              : Object.keys(this.killed).length >= Object.keys(this.state.targets).length //- 1
+              : Object.keys(this.killed).length >= Object.keys(this.state.targets).length - 1
                 ? <View style={s.me}><Text style={s.meText}>🥇 You are the last assassin standing! 🥇</Text></View>
                 : <View style={s.me}>
                     <View style={s.scannerContainer}>
-                      {/* <QRCodeScanner onRead={this._onScan} /> */}
+                      { this.state.showScanner
+                        ? <QRCodeScanner onRead={this._onScan} cameraStyle={{height: 100, width: 100}} />
+                        : <TouchableOpacity onPress={this._showScanner} style={s.tapToScan}><Text style={[s.alignCenter, s.centerText]}>Tap to scan</Text></TouchableOpacity> }
                     </View>
                     <View style={s.alignCenter}>
                       <Text style={s.centerText}>Your target:</Text>
@@ -127,7 +130,7 @@ export default class HomeView extends PureComponent {
                     <View style={s.alignCenter}>
                       <Text style={s.centerText}>Secret code:</Text>
                       <QRCode
-                        value={JSON.stringify(client.currentUser)}
+                        value={JSON.stringify(client.currentUser.id)}
                         size={100}
                         bgColor='black'
                         fgColor='white' />
@@ -197,8 +200,47 @@ export default class HomeView extends PureComponent {
     return null
   }
 
-  _onScan = (code) => {
-    const scannedPlayer = JSON.parse(code)
+  _yourTarget() {
+    if (!this.state.targets) return null
+    const killed = this._getKilled()
+    let targetId = this.state.targets[client.currentUser.id]
+    while (client.currentUser.id !== targetId && killed[targetId]) targetId = this.state.targets[targetId]
+    return this.state.users.find(u => u.id === targetId)
+  }
+
+  _showScanner = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA, {
+            title: 'Camera Permission',
+            message: 'Required to unlock your assassin skills'
+          }
+        )
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log("You can use the camera")
+          this.setState({showScanner: true})
+        } else {
+          console.log("Camera permission denied")
+        }
+      } catch (err) {
+        console.warn(err)
+      }
+    } else {
+      this.setState({showScanner: true})
+    }
+  }
+
+  _onScan = code => {
+    this.setState({showScanner: false})
+    const scannedUserId = JSON.parse(code.data)
+    const yourTarget = this._yourTarget()
+    if (yourTarget && yourTarget.id === scannedUserId) {
+      this._markAssassinated(yourTarget, client.currentUser.id)
+      Alert.alert('Hit!', 'Good job, and watch your back!')
+    } else {
+      Alert.alert('Careful!', 'A case of mistaken identity? Don\'t whack the wrong person!')
+    }
   }
 
   findAssassinIdFor(playerId) {
@@ -210,7 +252,7 @@ export default class HomeView extends PureComponent {
     const killed = this._getKilled()
     let assassinId = reverseTargets[playerId]
     while (assassinId !== playerId && killed[assassinId]) assassinId = reverseTargets[assassinId]
-    //if (assassinId === playerId) return null
+    if (assassinId === playerId) return null
     return assassinId
   }
 }
@@ -257,14 +299,14 @@ const s = ReactNative.StyleSheet.create({
     flex: 1
   },
   killedX: {
-    paddingLeft: 4,
+    paddingLeft: 2,
     fontSize: 35,
     textAlign: 'center',
     position: 'absolute',
     backgroundColor: 'transparent'
   },
   killedXBig: {
-    paddingLeft: 7,
+    paddingLeft: 4,
     fontSize: 60,
     textAlign: 'center',
     position: 'absolute',
@@ -300,6 +342,11 @@ const s = ReactNative.StyleSheet.create({
   },
   scannerContainer: {
     height: 100, width: 100,
-    backgroundColor: client.primaryColor
+    backgroundColor: client.primaryColor,
+    justifyContent: 'center'
+  },
+  tapToScan: {
+    flex: 1,
+    justifyContent: 'center'
   }
 })
