@@ -42,7 +42,7 @@ export default class Admin extends PureComponent {
     const firstPlayer = players.pop()
     let currentPlayer = firstPlayer
     while (players.length) {
-      const targetIndex = Math.floor(Math.random() * users.length)
+      const targetIndex = Math.floor(Math.random() * players.length)
       const [ targetPlayer ] = players.splice(targetIndex, 1)
       targets[currentPlayer.id] = targetPlayer.id
       currentPlayer = targetPlayer

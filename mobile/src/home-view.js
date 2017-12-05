@@ -104,12 +104,12 @@ export default class HomeView extends PureComponent {
                   <Text style={s.centerText}>{whoAssassinatedMe.firstName} {whoAssassinatedMe.lastName} took you down{this.killed[whoAssassinatedMe.id] ? ' before also being eliminated' : ''}!</Text>
                   <View style={s.me}>
                     <View>
-                      <Avatar user={client.currentUser} size={100} />
+                      <Avatar user={client.currentUser} size={100} client={client} />
                       <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View>
                     </View>
                     <Text style={s.gun}>🔫</Text>
                     <View>
-                      <Avatar user={whoAssassinatedMe} size={100} />
+                      <Avatar user={whoAssassinatedMe} size={100} client={client} />
                       { this.killed[whoAssassinatedMe.id] && <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View> }
                     </View>
                   </View>
@@ -124,7 +124,7 @@ export default class HomeView extends PureComponent {
                     </View>
                     <View style={s.alignCenter}>
                       <Text style={s.centerText}>Your target:</Text>
-                      <Avatar user={yourTarget} size={100} />
+                      <Avatar user={yourTarget} size={100} client={client} />
                       <Text style={s.centerText}>{yourTarget.firstName} {yourTarget.lastName}</Text>
                     </View>
                     <View style={s.alignCenter}>
@@ -151,7 +151,7 @@ export default class HomeView extends PureComponent {
   _renderListPlayer = ({item}) => (
     <View style={s.listPlayer}>
       <View>
-        <Avatar user={item} size={60} />
+        <Avatar user={item} size={60} client={client} />
         { this.killed[item.id] && <View style={s.killedXContainer}><Text style={s.killedX}>❌</Text></View> }
       </View>
       <View style={s.listPlayerRight}>
@@ -164,7 +164,7 @@ export default class HomeView extends PureComponent {
         { this.state.killsBy[item.id] && (
           <View style={s.kills}>
             <Text style={s.killsIcon}>🎯</Text>
-            { this.state.killsBy[item.id].map(id => <Avatar style={s.killedAvatar} key={id} user={this.state.users.find(u => u.id === id)} size={Math.min(30, 240 / this.state.killsBy[item.id].length)} />) }
+            { this.state.killsBy[item.id].map(id => <Avatar style={s.killedAvatar} key={id} user={this.state.users.find(u => u.id === id)} size={Math.min(30, 240 / this.state.killsBy[item.id].length)} client={client} />) }
           </View>)}
         <View>
         </View>
