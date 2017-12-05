@@ -1,6 +1,6 @@
 import React, {PureComponent } from 'react'
 import ReactNative, {
-  Alert, FlatList, TouchableOpacity, Text, TextInput, View
+  Alert, FlatList, PermissionsAndroid, TouchableOpacity, Text, TextInput, View
 } from 'react-native'
 
 import QRCode from 'react-native-qrcode'
