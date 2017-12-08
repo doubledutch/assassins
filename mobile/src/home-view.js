@@ -137,7 +137,7 @@ export default class HomeView extends PureComponent {
                       <Text style={s.centerText}>Forfeit if killed</Text>
                     </View>
                   </View>
-            : <View style={s.me}><Text>Sorry, you're too late. The game is already afoot!</Text></View>
+            : <View style={s.me}><Text>Sorry, you&#39;re too late. The game is already afoot!</Text></View>
           : this.state.isSignedIn && <View style={s.me}><Text>Awaiting your first target...</Text></View>
         }
         <FlatList data={usersToShow} extraData={this.state.killsBy} keyExtractor={this._keyExtractor} renderItem={this._renderListPlayer} />
