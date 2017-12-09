@@ -1,4 +1,4 @@
-import React, {PureComponent } from 'react'
+import React, { PureComponent } from 'react'
 import ReactNative, {
   Alert, FlatList, PermissionsAndroid, TouchableOpacity, Text, TextInput, View
 } from 'react-native'
@@ -36,24 +36,23 @@ export default class HomeView extends PureComponent {
 
   componentDidMount() {
     this.signin.then(() => {
-      fbc.database.private.adminableUserRef('adminToken').once('value', data => {
+      fbc.database.private.adminableUserRef('adminToken').once('value', async data => {
         const longLivedToken = data.val()
         if (longLivedToken) {
-          firebase.auth().signOut()
+          console.log('Attendee appears to be admin.  Logging out and logging in w/ admin token.')
+          await firebase.auth().signOut()
           client.longLivedToken = longLivedToken
-          fbc.signinAdmin().then(() => {
-            this.setState({isAdmin: true})
-            wireListeners()
-          })
-        } else {
-          wireListeners()
+          await fbc.signinAdmin()
+          console.log('Re-logged in as admin')
+          this.setState({isAdmin: true})
         }
+        wireListeners()
       })
 
       const wireListeners = () => {
         usersRef.on('child_added', data => {
           const user = data.val().user
-          if (user) this.setState({users: [...this.state.users, user]})
+          if (user) this.setState(prevState => ({users: [...prevState.users, user]}))
         })
         usersRef.on('value', data => { // Watch for removal of all users.
           if (!data.val()) this.setState({users: []})
@@ -68,9 +67,10 @@ export default class HomeView extends PureComponent {
 
         killsRef.on('child_added', data => {
           const kill = data.val()
-          this.setState({
-            killsBy: {...this.state.killsBy, [kill.by]: this.state.killsBy[kill.by] ? [kill.target, ...this.state.killsBy[kill.by]] : [kill.target]}
-          })
+
+          this.setState(prevState => ({
+            killsBy: {...prevState.killsBy, [kill.by]: prevState.killsBy[kill.by] ? [kill.target, ...prevState.killsBy[kill.by]] : [kill.target]}
+          }))
         })
 
         // Removes all kills
@@ -87,7 +87,10 @@ export default class HomeView extends PureComponent {
     const usersToShow = this.state.targets
       ? this.state.users.filter(u => this.state.targets[u.id])
       : this.state.users
-    usersToShow.sort((a,b) => (this.killed[b.id] ? 0 : 10000) - (this.killed[a.id] ? 0 : 10000) + (this.state.killsBy[b.id] || 0) - (this.state.killsBy[a.id] || 0))
+
+    usersToShow.sort((a,b) =>
+      (this.killed[b.id] ? 0 : 10000) - (this.killed[a.id] ? 0 : 10000)
+      + (this.state.killsBy[b.id] || []).length - (this.state.killsBy[a.id] || []).length)
 
     const whoAssassinatedMe = this._whoAssassinatedMe()
     const yourTarget = this._yourTarget()
@@ -140,7 +143,12 @@ export default class HomeView extends PureComponent {
             : <View style={s.me}><Text>Sorry, you&#39;re too late. The game is already afoot!</Text></View>
           : this.state.isSignedIn && <View style={s.me}><Text>Awaiting your first target...</Text></View>
         }
-        <FlatList data={usersToShow} extraData={this.state.killsBy} keyExtractor={this._keyExtractor} renderItem={this._renderListPlayer} />
+        <FlatList
+          data={usersToShow}
+          extraData={this.state.killsBy}
+          keyExtractor={this._keyExtractor}
+          renderItem={this._renderListPlayer}
+        />
       </View>
     )
   }
@@ -299,14 +307,12 @@ const s = ReactNative.StyleSheet.create({
     flex: 1
   },
   killedX: {
-    paddingLeft: 2,
     fontSize: 35,
     textAlign: 'center',
     position: 'absolute',
     backgroundColor: 'transparent'
   },
   killedXBig: {
-    paddingLeft: 4,
     fontSize: 60,
     textAlign: 'center',
     position: 'absolute',
