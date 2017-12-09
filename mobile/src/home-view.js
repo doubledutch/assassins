@@ -50,11 +50,13 @@ export default class HomeView extends PureComponent {
       })
 
       const wireListeners = () => {
-        usersRef.on('child_added', data => {
-          const user = data.val().user
-          if (user) this.setState(prevState => ({users: [...prevState.users, user]}))
-        })
-        usersRef.on('value', data => { // Watch for removal of all users.
+        usersRef.on('value', data => {
+          const val = data.val()
+          if (val) {
+            this.setState({users: Object.keys(val).map(id => val[id].user)})
+          } else {
+            this.setState({users: []})
+          }
           if (!data.val()) this.setState({users: []})
         })
   
@@ -168,6 +170,9 @@ export default class HomeView extends PureComponent {
           { this.state.targets && this.state.isAdmin && !this.killed[item.id] && <TouchableOpacity onPress={() => this._adminMarkAssassinated(item)}>
             <Text style={s.buttonText}>Mark dead</Text>
           </TouchableOpacity> }
+          { !this.state.targets && this.state.isAdmin && <TouchableOpacity onPress={() => this._adminRemoveStalePlayer(item)}>
+            <Text style={s.buttonText}>Remove stale</Text>
+          </TouchableOpacity> }
         </View>
         { this.state.killsBy[item.id] && (
           <View style={s.kills}>
@@ -195,6 +200,10 @@ export default class HomeView extends PureComponent {
         ]
       )
     }
+  }
+
+  _adminRemoveStalePlayer(player) {
+    fbc.database.public.usersRef(player.id).remove()
   }
 
   _markAssassinated(player, assassinId) {
