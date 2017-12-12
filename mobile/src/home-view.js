@@ -1,11 +1,10 @@
 import React, { PureComponent } from 'react'
 import ReactNative, {
-  Alert, FlatList, PermissionsAndroid, TouchableOpacity, Text, TextInput, View
+  Alert, FlatList, Image, PermissionsAndroid, TouchableOpacity, Text, TextInput, View
 } from 'react-native'
 
 import QRCode from 'react-native-qrcode'
 import QRCodeScanner from 'react-native-qrcode-scanner'
-import { CachedImage } from 'react-native-cached-image'
 
 import Admin from './Admin'
 
@@ -85,7 +84,7 @@ export default class HomeView extends PureComponent {
         killMethodsRef.on('value', data => {
           const val = data.val()
           if (val) {
-            this.setState({killMethods: Object.keys(val).reduce((arr, i) => {arr[i] = {...val[i], id: i}; return arr}, [])})
+            this.setState({killMethods: Object.keys(val).reduce((arr, i) => {arr[+i] = {...val[i], id: +i}; return arr}, [])})
           }
         })
       }
@@ -122,13 +121,17 @@ export default class HomeView extends PureComponent {
     userRef.set({...client.currentUser, killMethod})
   }
 
-  renderMain() {    
-    if (!this.state.killMethods) { return (
+  renderLoading(text) {
+    return (
       <View style={s.container}>
-        <CachedImage style={s.loadingImage} source={{uri:'https://2.bp.blogspot.com/-WIDPo89kTwI/UEkAjZbJ_II/AAAAAAAAV6E/40JFS3zc-1k/s1600/daniel_craig_bond_007.jpg'}} />
-        <Text style={{position: 'absolute', top: 5, left: 5, color: 'white', backgroundColor: 'transparent'}}>LOADING...</Text>
+        <Image style={s.loadingImage} source={{uri:'https://2.bp.blogspot.com/-WIDPo89kTwI/UEkAjZbJ_II/AAAAAAAAV6E/40JFS3zc-1k/s1600/daniel_craig_bond_007.jpg'}} />
+        <Text style={{position: 'absolute', top: 5, left: 5, color: 'white', backgroundColor: 'transparent'}}>{text}</Text>
       </View>
-    )}
+    )
+  }
+
+  renderMain() {    
+    if (!this.state.killMethods) return this.renderLoading('LOADING...')
 
     const me = this.state.users.find(u => u.id === client.currentUser.id)
     const whoAssassinatedMe = this._whoAssassinatedMe()
@@ -210,7 +213,7 @@ export default class HomeView extends PureComponent {
         return <View style={s.me}><Text>Sorry, you&#39;re too late. The game is already afoot!</Text></View>
       }
     } else if (this.state.isSignedIn) {
-      return <View style={s.me}><Text>Awaiting your first target...</Text></View>
+      return this.renderLoading('Awaiting your first target...')
     }
 
     return null
