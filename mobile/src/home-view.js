@@ -124,7 +124,11 @@ export default class HomeView extends PureComponent {
                 : <View style={s.me}>
                     <View style={s.scannerContainer}>
                       { this.state.showScanner
-                        ? <QRCodeScanner onRead={this._onScan} cameraStyle={{height: 100, width: 100}} />
+                        ? <QRCodeScanner
+                            onRead={this._onScan}
+                            cameraStyle={{height: 100, width: 100}}
+                            permissionDialogTitle="Camera Permission"
+                            permissionDialogMessage="Required to unlock your assassin skills" />
                         : <TouchableOpacity onPress={this._showScanner} style={s.tapToScan}><Text style={[s.alignCenter, s.centerText]}>Tap to scan</Text></TouchableOpacity> }
                     </View>
                     <View style={s.alignCenter}>
@@ -225,29 +229,8 @@ export default class HomeView extends PureComponent {
     return this.state.users.find(u => u.id === targetId)
   }
 
-  _showScanner = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA, {
-            title: 'Camera Permission',
-            message: 'Required to unlock your assassin skills'
-          }
-        )
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log("You can use the camera")
-          this.setState({showScanner: true})
-        } else {
-          console.log("Camera permission denied")
-        }
-      } catch (err) {
-        console.warn(err)
-      }
-    } else {
-      this.setState({showScanner: true})
-    }
-  }
-
+  _showScanner = () => this.setState({showScanner: true})
+  
   _onScan = code => {
     this.setState({showScanner: false})
     const scannedUserId = JSON.parse(code.data)
