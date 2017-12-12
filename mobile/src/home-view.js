@@ -5,10 +5,11 @@ import ReactNative, {
 
 import QRCode from 'react-native-qrcode'
 import QRCodeScanner from 'react-native-qrcode-scanner'
+import { CachedImage } from 'react-native-cached-image'
 
 import Admin from './Admin'
 
-import client, { Avatar, TitleBar } from '@doubledutch/rn-client'
+import client, { Avatar, Color, TitleBar } from '@doubledutch/rn-client'
 import FirebaseConnector from '@doubledutch/firebase-connector'
 import firebase from 'firebase'
 const fbc = FirebaseConnector(client, 'assassins')
@@ -20,6 +21,7 @@ const targetsRef = fbc.database.public.adminRef('targets')
 const killsRef = fbc.database.public.allRef('kills')
 const userRef = fbc.database.public.userRef('user')
 const usersRef = fbc.database.public.usersRef()
+const killMethodsRef = fbc.database.public.adminRef('killMethods')
 
 export default class HomeView extends PureComponent {
   constructor() {
@@ -28,6 +30,7 @@ export default class HomeView extends PureComponent {
     this.state = {
       users: [],
       targets: null,
+      killMethods: null,
       killsBy: {}
     }
 
@@ -57,7 +60,6 @@ export default class HomeView extends PureComponent {
           } else {
             this.setState({users: []})
           }
-          if (!data.val()) this.setState({users: []})
         })
   
         // Always signal that the player is in the game when it is open.
@@ -79,11 +81,18 @@ export default class HomeView extends PureComponent {
         killsRef.on('value', data => {
           if (!data.val()) this.setState({killsBy: {}})
         })
+
+        killMethodsRef.on('value', data => {
+          const val = data.val()
+          if (val) {
+            this.setState({killMethods: Object.keys(val).reduce((arr, i) => {arr[i] = {...val[i], id: i}; return arr}, [])})
+          }
+        })
       }
     })
   }
 
-  render() {
+  render() {    
     this.killed = this._getKilled()
 
     const usersToShow = this.state.targets
@@ -94,69 +103,117 @@ export default class HomeView extends PureComponent {
       (this.killed[b.id] ? 0 : 10000) - (this.killed[a.id] ? 0 : 10000)
       + (this.state.killsBy[b.id] || []).length - (this.state.killsBy[a.id] || []).length)
 
-    const whoAssassinatedMe = this._whoAssassinatedMe()
-    const yourTarget = this._yourTarget()
-
     return (
       <View style={s.container}>
         <TitleBar title="Assassins" client={client} signin={this.signin} />
         { this.state.isAdmin && <Admin users={this.state.users} targets={this.state.targets} fbc={fbc} /> }
-        { this.state.targets
-          ? this.state.targets[client.currentUser.id]
-            ? whoAssassinatedMe
-              ? <View>
-                  <Text style={s.dead}>DEAD!</Text>
-                  <Text style={s.centerText}>{whoAssassinatedMe.firstName} {whoAssassinatedMe.lastName} took you down{this.killed[whoAssassinatedMe.id] ? ' before also being eliminated' : ''}!</Text>
-                  <View style={s.me}>
-                    <View>
-                      <Avatar user={client.currentUser} size={100} client={client} />
-                      <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View>
-                    </View>
-                    <Text style={s.gun}>🔫</Text>
-                    <View>
-                      <Avatar user={whoAssassinatedMe} size={100} client={client} />
-                      { this.killed[whoAssassinatedMe.id] && <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View> }
-                    </View>
-                  </View>
-                </View>
-              : Object.keys(this.killed).length >= Object.keys(this.state.targets).length - 1
-                ? <View style={s.me}><Text style={s.meText}>🥇 You are the last assassin standing! 🥇</Text></View>
-                : <View style={s.me}>
-                    <View style={s.scannerContainer}>
-                      { this.state.showScanner
-                        ? <QRCodeScanner
-                            onRead={this._onScan}
-                            cameraStyle={{height: 100, width: 100}}
-                            permissionDialogTitle="Camera Permission"
-                            permissionDialogMessage="Required to unlock your assassin skills" />
-                        : <TouchableOpacity onPress={this._showScanner} style={s.tapToScan}><Text style={[s.alignCenter, s.centerText]}>Tap to scan</Text></TouchableOpacity> }
-                    </View>
-                    <View style={s.alignCenter}>
-                      <Text style={s.centerText}>Your target:</Text>
-                      <Avatar user={yourTarget} size={100} client={client} />
-                      <Text style={s.centerText}>{yourTarget.firstName} {yourTarget.lastName}</Text>
-                    </View>
-                    <View style={s.alignCenter}>
-                      <Text style={s.centerText}>Secret code:</Text>
-                      <QRCode
-                        value={JSON.stringify(client.currentUser.id)}
-                        size={100}
-                        bgColor='black'
-                        fgColor='white' />
-                      <Text style={s.centerText}>Forfeit if killed</Text>
-                    </View>
-                  </View>
-            : <View style={s.me}><Text>Sorry, you&#39;re too late. The game is already afoot!</Text></View>
-          : this.state.isSignedIn && <View style={s.me}><Text>Awaiting your first target...</Text></View>
-        }
-        <FlatList
+        { this.renderMain() }
+        { this.state.killMethods && <FlatList
           data={usersToShow}
           extraData={this.state.killsBy}
           keyExtractor={this._keyExtractor}
           renderItem={this._renderListPlayer}
-        />
+        /> }
       </View>
     )
+  }
+
+  _selectKillMethod(killMethod) {
+    userRef.set({...client.currentUser, killMethod})
+  }
+
+  renderMain() {    
+    if (!this.state.killMethods) { return (
+      <View style={s.container}>
+        <CachedImage style={s.loadingImage} source={{uri:'https://2.bp.blogspot.com/-WIDPo89kTwI/UEkAjZbJ_II/AAAAAAAAV6E/40JFS3zc-1k/s1600/daniel_craig_bond_007.jpg'}} />
+        <Text style={{position: 'absolute', top: 5, left: 5, color: 'white', backgroundColor: 'transparent'}}>LOADING...</Text>
+      </View>
+    )}
+
+    const me = this.state.users.find(u => u.id === client.currentUser.id)
+    const whoAssassinatedMe = this._whoAssassinatedMe()
+    const yourTarget = this._yourTarget()
+
+    if (!me || !me.killMethod) {
+      return (
+        <View style={s.killMethods}>
+          <Text>Select the method your secret assassin should try to use to take you down:</Text>
+          { this.state.killMethods.map(m => (
+            <TouchableOpacity key={m.id} onPress={() => this._selectKillMethod(m.id)} style={s.killMethod}>
+              <Text style={s.killMethodTitle}>{m.title}</Text>
+              <Text>{m.description}</Text>
+            </TouchableOpacity>
+          )) }
+        </View>
+      )
+    }
+    
+    if (this.state.targets) {
+      if (this.state.targets[client.currentUser.id]) {
+        if (whoAssassinatedMe) {
+          return (
+            <View>
+              <Text style={s.dead}>DEAD!</Text>
+              <Text style={s.centerText}>{whoAssassinatedMe.firstName} {whoAssassinatedMe.lastName} took you down{this.killed[whoAssassinatedMe.id] ? ' before also being eliminated' : ''}!</Text>
+              <View style={s.me}>
+                <View>
+                  <Avatar user={client.currentUser} size={100} client={client} />
+                  <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View>
+                </View>
+                <Text style={s.gun}>🔫</Text>
+                <View>
+                  <Avatar user={whoAssassinatedMe} size={100} client={client} />
+                  { this.killed[whoAssassinatedMe.id] && <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View> }
+                </View>
+              </View>
+            </View>
+          )
+        } else if (Object.keys(this.killed).length >= Object.keys(this.state.targets).length - 1) {
+          return <View style={s.me}><Text style={s.meText}>🥇 You are the last assassin standing! 🥇</Text></View>
+        } else {
+          const killMethod = this.state.killMethods[yourTarget.killMethod] || this.state.killMethods[0]
+          return (
+            <View>
+              <View style={s.me}>
+                <View style={s.scannerContainer}>
+                  { this.state.showScanner
+                    ? <QRCodeScanner
+                        onRead={this._onScan}
+                        cameraStyle={{height: 100, width: 100}}
+                        permissionDialogTitle="Camera Permission"
+                        permissionDialogMessage="Required to unlock your assassin skills" />
+                    : <TouchableOpacity onPress={this._showScanner} style={s.tapToScan}><Text style={[s.alignCenter, s.centerText]}>Tap to scan</Text></TouchableOpacity> }
+                </View>
+                <View style={s.alignCenter}>
+                  <Text style={s.centerText}>Your target:</Text>
+                  <Avatar user={yourTarget} size={100} client={client} />
+                  <Text style={s.centerText}>{yourTarget.firstName} {yourTarget.lastName}</Text>
+                </View>
+                <View style={s.alignCenter}>
+                  <Text style={s.centerText}>Secret code:</Text>
+                  <QRCode
+                    value={JSON.stringify(client.currentUser.id)}
+                    size={100}
+                    bgColor='black'
+                    fgColor='white' />
+                  <Text style={s.centerText}>Forfeit if killed</Text>
+                </View>
+              </View>
+              <View style={s.killMethod}>
+                <Text style={s.killMethodTitle}>Mission: {killMethod.title}</Text>
+                <Text>{killMethod.description}</Text>
+              </View>
+            </View>
+          )
+        }
+      } else {
+        return <View style={s.me}><Text>Sorry, you&#39;re too late. The game is already afoot!</Text></View>
+      }
+    } else if (this.state.isSignedIn) {
+      return <View style={s.me}><Text>Awaiting your first target...</Text></View>
+    }
+
+    return null
   }
 
   _getKilled = () => [].concat(...Object.keys(this.state.killsBy).map(by => this.state.killsBy[by])).reduce((map, id) => { map[id] = true; return map }, {})
@@ -346,5 +403,22 @@ const s = ReactNative.StyleSheet.create({
   tapToScan: {
     flex: 1,
     justifyContent: 'center'
+  },
+  killMethods: {
+    margin: 10
+  },
+  killMethod: {
+    padding: 10,
+    marginVertical: 5,
+    backgroundColor: new Color({...(new Color(client.primaryColor)).hsv(), s: 0.4, v: 1.0}).rgbString()    
+  },
+  killMethodTitle: {
+    fontSize: 24,
+    paddingBottom: 5
+  },
+  loadingImage: {
+    flex: 1,
+    height: '100%',
+    resizeMode: 'cover'
   }
 })
