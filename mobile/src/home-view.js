@@ -104,6 +104,7 @@ export default class HomeView extends PureComponent {
 
     return (
       <View style={s.container}>
+        <Image style={s.backgroundImage} source={{uri:'https://2.bp.blogspot.com/-WIDPo89kTwI/UEkAjZbJ_II/AAAAAAAAV6E/40JFS3zc-1k/s1600/daniel_craig_bond_007.jpg'}} />
         <TitleBar title="Assassins" client={client} signin={this.signin} />
         { this.state.isAdmin && <Admin users={this.state.users} targets={this.state.targets} fbc={fbc} /> }
         { this.renderMain() }
@@ -140,7 +141,7 @@ export default class HomeView extends PureComponent {
     if (!me || !me.killMethod) {
       return (
         <View style={s.killMethods}>
-          <Text>Select the method your secret assassin should try to use to take you down:</Text>
+          <Text style={s.centerText}>Select the method your secret assassin should try to use to take you down:</Text>
           { this.state.killMethods.map(m => (
             <TouchableOpacity key={m.id} onPress={() => this._selectKillMethod(m.id)} style={s.killMethod}>
               <Text style={s.killMethodTitle}>{m.title}</Text>
@@ -213,7 +214,11 @@ export default class HomeView extends PureComponent {
         return <View style={s.me}><Text>Sorry, you&#39;re too late. The game is already afoot!</Text></View>
       }
     } else if (this.state.isSignedIn) {
-      return this.renderLoading('Awaiting your first target...')
+      return (
+        <View>
+          <Text style={{padding: 5, color: 'black', backgroundColor: 'transparent'}}>Awaiting your first target...</Text>
+        </View>
+      )
     }
 
     return null
@@ -333,7 +338,7 @@ const s = ReactNative.StyleSheet.create({
     fontSize: 18
   },
   listPlayer: {
-    padding: 10,
+    padding: 7,
     flex: 1,
     flexDirection: 'row',
   },
@@ -348,6 +353,7 @@ const s = ReactNative.StyleSheet.create({
   },
   listPlayerText: {
     fontSize: 18,
+    backgroundColor: 'transparent',
     flex: 1
   },
   killedXContainer: {
@@ -381,7 +387,8 @@ const s = ReactNative.StyleSheet.create({
     marginRight: 3
   },
   buttonText: {
-    color: 'blue'
+    color: 'blue',
+    backgroundColor: 'transparent'
   },
   gun: {
     fontSize: 60
@@ -393,6 +400,7 @@ const s = ReactNative.StyleSheet.create({
   },
   centerText: {
     textAlign: 'center',
+    backgroundColor: 'transparent',
     padding: 3
   },
   alignCenter: {
@@ -422,6 +430,13 @@ const s = ReactNative.StyleSheet.create({
   loadingImage: {
     flex: 1,
     height: '100%',
+    resizeMode: 'cover'
+  },
+  backgroundImage: {
+    position: 'absolute',
+    height: '100%',
+    width: '100%',
+    opacity: 0.3,
     resizeMode: 'cover'
   }
 })
