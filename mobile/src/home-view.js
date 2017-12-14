@@ -173,7 +173,7 @@ export default class HomeView extends PureComponent {
             </View>
           )
         } else if (Object.keys(this.killed).length >= Object.keys(this.state.targets).length - 1) {
-          return <View style={s.me}><Text style={s.meText}>🥇 You are the last assassin standing! 🥇</Text></View>
+          return <View style={s.me}><Text style={[s.meText, s.centerText]}>🥇 You are the last assassin standing! 🥇</Text></View>
         } else {
           const killMethod = this.state.killMethods[yourTarget.killMethod] || this.state.killMethods[0]
           return (
@@ -211,7 +211,7 @@ export default class HomeView extends PureComponent {
           )
         }
       } else {
-        return <View style={s.me}><Text>Sorry, you&#39;re too late. The game is already afoot!</Text></View>
+        return <View style={s.me}><Text style={s.centerText}>Sorry, you&#39;re too late. The game is already afoot!</Text></View>
       }
     } else if (this.state.isSignedIn) {
       return (
@@ -242,6 +242,11 @@ export default class HomeView extends PureComponent {
           { !this.state.targets && this.state.isAdmin && <TouchableOpacity onPress={() => this._adminRemoveStalePlayer(item)}>
             <Text style={s.buttonText}>Remove stale</Text>
           </TouchableOpacity> }
+          { !this.state.targets && this.state.isAdmin &&
+            (item.isExcluded
+              ? <TouchableOpacity onPress={() => this._excludePlayerFromNextGame(item, false)}><Text style={s.centerText}>❌</Text></TouchableOpacity>
+              : <TouchableOpacity onPress={() => this._excludePlayerFromNextGame(item, true)}><Text style={s.centerText}>✅</Text></TouchableOpacity>
+            ) }
         </View>
         { this.state.killsBy[item.id] && (
           <View style={s.kills}>
@@ -253,6 +258,10 @@ export default class HomeView extends PureComponent {
       </View>
     </View>
   )
+
+  _excludePlayerFromNextGame(player, isExcluded) {
+    fbc.database.public.usersRef(player.id).child('user').child('isExcluded').set(isExcluded)
+  }
 
   _adminMarkAssassinated(player) {
     const assassinId = this.findAssassinIdFor(player.id)

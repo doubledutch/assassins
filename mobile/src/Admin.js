@@ -22,7 +22,7 @@ export default class Admin extends PureComponent {
                 <TouchableOpacity onPress={this._abortGame}><Text style={s.buttonText}>Abort game</Text></TouchableOpacity>
               </View>)
             : (<View>
-              <TouchableOpacity onPress={this._startGame}><Text style={s.buttonText}>Start game with {users.length} players</Text></TouchableOpacity>
+              <TouchableOpacity onPress={this._startGame}><Text style={s.buttonText}>Start game with {users.filter(u => !u.isExcluded).length} players</Text></TouchableOpacity>
             </View>)}
         </View> }
         <View>
@@ -38,7 +38,7 @@ export default class Admin extends PureComponent {
   // Randomly assign targets as a single directed cycle including all players.
   _startGame = () => {
     const targets = {}
-    const players = this.props.users.slice()
+    const players = this.props.users.filter(u => !u.isExcluded)
     const firstPlayer = players.pop()
     let currentPlayer = firstPlayer
     while (players.length) {
