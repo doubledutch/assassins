@@ -119,7 +119,7 @@ export default class HomeView extends PureComponent {
   }
 
   _selectKillMethod(killMethod) {
-    userRef.set({...client.currentUser, killMethod})
+    userRef.set({...client.currentUser, killMethod: `${killMethod}`})
   }
 
   renderLoading(text) {
@@ -175,7 +175,7 @@ export default class HomeView extends PureComponent {
         } else if (Object.keys(this.killed).length >= Object.keys(this.state.targets).length - 1) {
           return <View style={s.me}><Text style={[s.meText, s.centerText]}>🥇 You are the last assassin standing! 🥇</Text></View>
         } else {
-          const killMethod = this.state.killMethods[yourTarget.killMethod] || this.state.killMethods[0]
+          const killMethod = this.state.killMethods[+yourTarget.killMethod] || this.state.killMethods[0]
           return (
             <View>
               <View style={s.me}>
@@ -386,7 +386,8 @@ const s = ReactNative.StyleSheet.create({
     backgroundColor: 'transparent'    
   },
   killsIcon: {
-    fontSize: 20
+    fontSize: 20,
+    backgroundColor: 'transparent'
   },
   kills: {
     flexDirection: 'row',
@@ -400,12 +401,14 @@ const s = ReactNative.StyleSheet.create({
     backgroundColor: 'transparent'
   },
   gun: {
-    fontSize: 60
+    fontSize: 60,
+    backgroundColor: 'transparent'
   },
   dead: {
     fontSize: 60,
     fontWeight: 'bold',
-    textAlign: 'center'
+    textAlign: 'center',
+    backgroundColor: 'transparent'
   },
   centerText: {
     textAlign: 'center',
