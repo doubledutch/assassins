@@ -3,6 +3,7 @@ import ReactNative, {
   Platform, StyleSheet, Text as RNText, TouchableOpacity, View
 } from 'react-native'
 import { Button, Text } from './ui'
+import Carousel from './Carousel'
 import client, { Color } from '@doubledutch/rn-client'
 import colors from './colors'
 
@@ -18,15 +19,32 @@ export default class Welcome extends PureComponent {
     super()
     this.state = {
       showHelp: true,
-      helpStep: 0
+      canAccept: false
     }
   }
 
   render() {
+    const { showHelp, canAccept } = this.state
+    if (showHelp) {
+      return (
+        <View style={s.container}>
+          <Text style={s.welcome}>Welcome, Agent {client.currentUser.lastName || client.currentUser.firstName}</Text>
+          <View style={s.helpContainer}>
+            <Carousel texts={helpTexts} onStepChange={this._onStepChange} style={s.carousel} />
+            <Button text="ACCEPT MISSION" onPress={this._accept} disabled={!canAccept} style={s.accept} />
+          </View>
+        </View>
+      )
+    }
+
+    return this.renderMethodSelector()
+  }
+
+  _onStepChange = ({step, stepCount}) => this.setState({canAccept: step === stepCount - 1})
+  _accept = () => this.setState({showHelp: false})
+
+  renderMethodSelector() {
     const { killMethods } = this.props
-
-    if (this.state.showHelp) return this.renderHelp()
-
     return (
       <View style={s.killMethods}>
         <Text style={s.centerText}>Select the method your secret assassin should try to use to take you down:</Text>
@@ -40,101 +58,31 @@ export default class Welcome extends PureComponent {
     )
   }
 
-  renderHelp() {
-    const { helpStep } = this.state
-    return (
-      <View style={s.container}>
-        <View>
-          <Text style={s.welcome}>Welcome, Agent {client.currentUser.lastName || client.currentUser.firstName}</Text>
-          <View style={s.carousel}>
-            <View style={s.helpTextContainer}>
-              <Text style={s.helpText}>{helpTexts[helpStep]}</Text>
-            </View>
-            <View style={s.carouselDots}>
-              { helpTexts.map((t, i) => <View key={i} style={[s.carouselDot, i === helpStep ? s.carouselDotFilled : null]} />) }            
-            </View>
-            { helpStep > 0 && <TouchableOpacity style={[s.arrow, s.arrowLeft]} onPress={this._prevHelp}>
-                <RNText style={s.arrowText}>←</RNText>
-              </TouchableOpacity>
-            }
-            { helpStep < helpTexts.length - 1 && <TouchableOpacity style={[s.arrow, s.arrowRight]} onPress={this._nextHelp}>
-                <RNText style={s.arrowText}>→</RNText>
-              </TouchableOpacity>
-            }
-          </View>
-        </View>
-        <Button text="ACCEPT MISSION" onPress={this._accept} disabled={helpStep < helpTexts.length - 1} style={s.accept} />
-      </View>
-    )
-  }
-
-  _nextHelp = () => this.setState(state => ({helpStep: state.helpStep + 1}))
-  _prevHelp = () => this.setState(state => ({helpStep: state.helpStep - 1}))
-  _accept = () => this.setState({showHelp: false})
-
   _selectKillMethod = killMethod => {
     this.props.fbc.database.public.userRef('user').child('killMethod').set(`${killMethod}`)
   }
-
 }
 
-const carouselDotSize = 10
 const s = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'space-between'
+    flex: 1
+  },
+  carousel: {
+    height: 150
   },
   welcome: {
     fontSize: 24,
     marginVertical: 15,
     marginLeft: 7
   },
-  helpTextContainer: {
-    height: 125,
-    paddingVertical: 4
-  },
-  helpText: {
-    fontSize: 16
-  },
-  carousel: {
-    margin: 7,
-    padding: 7,
-    borderRadius: 5,
-    backgroundColor: colors.lightGray
-  },
-  carouselDots: {
-    flexDirection: 'row',
-    padding: 6,
-    justifyContent: 'center'
-  },
-  carouselDot: {
-    borderRadius: carouselDotSize / 2,
-    width: carouselDotSize,
-    height: carouselDotSize,
-    borderColor: colors.neon,
-    borderWidth: 1,
-    marginHorizontal: 3
-  },
-  carouselDotFilled: {
-    backgroundColor: colors.neon
-  },
-  arrow: {
-    position: 'absolute',
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    bottom: 0,
-  },
-  arrowLeft: { left: 3 },
-  arrowRight: { right: 3 },
-  arrowText: {
-    color: colors.neon,
-    fontSize: 22
-  },
   accept: {
     marginHorizontal: 7,
     marginVertical: 20
   },
-
+  helpContainer: {
+    flex: 1,
+    justifyContent: 'space-between'
+  },
   killMethods: {
     margin: 10
   },
