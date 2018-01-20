@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react'
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import client, { Color } from '@doubledutch/rn-client'
+import colors from './colors'
 
 export default class Admin extends PureComponent {
   constructor() {
@@ -82,13 +83,15 @@ export default class Admin extends PureComponent {
 
 const s = StyleSheet.create({
   container: {
-    backgroundColor: new Color({...(new Color(client.primaryColor)).hsv(), s: 0.4, v: 1.0}).rgbString()    
+    backgroundColor: colors.darkGray,
+    color: 'white'
   },
   header: {
     padding: 5,
   },
   headerText: {
     fontSize: 16,
+    color: '#fff',
     textAlign: 'center'
   },
   main: {

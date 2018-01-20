@@ -7,8 +7,10 @@ import QRCode from 'react-native-qrcode'
 import QRCodeScanner from 'react-native-qrcode-scanner'
 
 import Admin from './Admin'
+import Welcome from './Welcome'
 
 import client, { Avatar, Color, TitleBar } from '@doubledutch/rn-client'
+import colors from './colors'
 import FirebaseConnector from '@doubledutch/firebase-connector'
 import firebase from 'firebase'
 const fbc = FirebaseConnector(client, 'assassins')
@@ -102,30 +104,33 @@ export default class HomeView extends PureComponent {
       (this.killed[b.id] ? 0 : 10000) - (this.killed[a.id] ? 0 : 10000)
       + (this.state.killsBy[b.id] || []).length - (this.state.killsBy[a.id] || []).length)
 
+    const me = this.state.users.find(u => u.id === client.currentUser.id)
+
     return (
       <View style={s.container}>
-        <Image style={s.backgroundImage} source={{uri:'https://2.bp.blogspot.com/-WIDPo89kTwI/UEkAjZbJ_II/AAAAAAAAV6E/40JFS3zc-1k/s1600/daniel_craig_bond_007.jpg'}} />
+        <Image style={s.backgroundImage} source={{uri:''}} />
         <TitleBar title="Assassins" client={client} signin={this.signin} />
         { this.state.isAdmin && <Admin users={this.state.users} targets={this.state.targets} fbc={fbc} /> }
-        { this.renderMain() }
-        { this.state.killMethods && <FlatList
-          data={usersToShow}
-          extraData={this.state.killsBy}
-          keyExtractor={this._keyExtractor}
-          renderItem={this._renderListPlayer}
-        /> }
+        { !me || !me.killMethod
+          ? <Welcome fbc={fbc} killMethods={this.state.killMethods} />
+          : [
+            this.renderMain(),
+            this.state.killMethods && <FlatList
+              data={usersToShow}
+              extraData={this.state.killsBy}
+              keyExtractor={this._keyExtractor}
+              renderItem={this._renderListPlayer}
+            /> 
+          ]
+        }
       </View>
     )
-  }
-
-  _selectKillMethod(killMethod) {
-    userRef.set({...client.currentUser, killMethod: `${killMethod}`})
   }
 
   renderLoading(text) {
     return (
       <View style={s.container}>
-        <Image style={s.loadingImage} source={{uri:'https://2.bp.blogspot.com/-WIDPo89kTwI/UEkAjZbJ_II/AAAAAAAAV6E/40JFS3zc-1k/s1600/daniel_craig_bond_007.jpg'}} />
+        <Image style={s.loadingImage} source={{uri:''}} />
         <Text style={{position: 'absolute', top: 5, left: 5, color: 'white', backgroundColor: 'transparent'}}>{text}</Text>
       </View>
     )
@@ -138,20 +143,6 @@ export default class HomeView extends PureComponent {
     const whoAssassinatedMe = this._whoAssassinatedMe()
     const yourTarget = this._yourTarget()
 
-    if (!me || !me.killMethod) {
-      return (
-        <View style={s.killMethods}>
-          <Text style={s.centerText}>Select the method your secret assassin should try to use to take you down:</Text>
-          { this.state.killMethods.map(m => (
-            <TouchableOpacity key={m.id} onPress={() => this._selectKillMethod(m.id)} style={s.killMethod}>
-              <Text style={s.killMethodTitle}>{m.title}</Text>
-              <Text>{m.description}</Text>
-            </TouchableOpacity>
-          )) }
-        </View>
-      )
-    }
-    
     if (this.state.targets) {
       if (this.state.targets[client.currentUser.id]) {
         if (whoAssassinatedMe) {
@@ -174,7 +165,7 @@ export default class HomeView extends PureComponent {
           )
         } else if (Object.keys(this.killed).length >= Object.keys(this.state.targets).length - 1) {
           return <View style={s.me}><Text style={[s.meText, s.centerText]}>🥇 You are the last assassin standing! 🥇</Text></View>
-        } else {
+        } else if (yourTarget) {
           const killMethod = this.state.killMethods[+yourTarget.killMethod] || this.state.killMethods[0]
           return (
             <View>
@@ -335,7 +326,7 @@ const fontSize = 18
 const s = ReactNative.StyleSheet.create({
   container: {
     flex: 1,
-    //backgroundColor: '#d9e1f9',
+    backgroundColor: colors.gray, // '#4b4a57',
   },
   me: {
     padding: 10,
@@ -426,9 +417,6 @@ const s = ReactNative.StyleSheet.create({
   tapToScan: {
     flex: 1,
     justifyContent: 'center'
-  },
-  killMethods: {
-    margin: 10
   },
   killMethod: {
     padding: 10,
