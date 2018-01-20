@@ -2,7 +2,9 @@ import React, { PureComponent } from 'react'
 import ReactNative, {
   Platform, StyleSheet, Text as RNText, TouchableOpacity, View
 } from 'react-native'
-import { Button, Text } from './ui'
+import Box from './Box'
+import Button from './Button'
+import Text from './Text'
 import client, { Color } from '@doubledutch/rn-client'
 import colors from './colors'
 
@@ -18,7 +20,7 @@ export default class Welcome extends PureComponent {
     const { step } = this.state
     const { texts } = this.props
     return (
-      <View style={[s.carousel, this.props.style]}>
+      <Box style={[s.carousel, this.props.style]}>
         <View style={s.textContainer}>
           <Text style={s.text}>{texts[step]}</Text>
         </View>
@@ -33,7 +35,7 @@ export default class Welcome extends PureComponent {
             <RNText style={s.arrowText}>→</RNText>
           </TouchableOpacity>
         }
-      </View>
+      </Box>
     )
   }
 
@@ -59,7 +61,6 @@ const s = StyleSheet.create({
     margin: 7,
     padding: 7,
     borderRadius: 5,
-    backgroundColor: colors.lightGray,
     justifyContent: 'space-between'
   },
   carouselDots: {

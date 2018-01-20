@@ -2,7 +2,8 @@ import React, { PureComponent } from 'react'
 import ReactNative, {
   Platform, StyleSheet, Text as RNText, TouchableOpacity, View
 } from 'react-native'
-import { Button, Text } from './ui'
+import Button from './Button'
+import Text from './Text'
 import Carousel from './Carousel'
 import client, { Color } from '@doubledutch/rn-client'
 import colors from './colors'

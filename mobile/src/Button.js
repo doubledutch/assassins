@@ -1,14 +1,9 @@
 import React, { PureComponent } from 'react'
-import { Platform, StyleSheet, Text as RNText, TouchableOpacity } from 'react-native'
+import { StyleSheet, TouchableOpacity } from 'react-native'
+import Text from './Text'
 import colors from './colors'
 
-export class Text extends PureComponent {
-  render() {
-    return <RNText {...this.props} style={[s.text, this.props.style]} />
-  }
-}
-
-export class Button extends PureComponent {
+export default class Button extends PureComponent {
   render() {
     const { disabled, text } = this.props
     return (
@@ -20,10 +15,6 @@ export class Button extends PureComponent {
 }
 
 const s = StyleSheet.create({
-  text: {
-    fontFamily: Platform.select({ios: 'AmericanTypewriter', android: 'normal'}),
-    color: '#fff'
-  },
   button: {
     borderWidth: 1,
     borderColor: colors.neon,
