@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react'
 import ReactNative, {
-  Platform, StyleSheet, Text as RNText, TouchableOpacity, View
+  Platform, ScrollView, StyleSheet, Text as RNText, TouchableOpacity, View
 } from 'react-native'
+import Box from './Box'
 import Button from './Button'
 import Text from './Text'
 import Carousel from './Carousel'
@@ -19,7 +20,7 @@ export default class Welcome extends PureComponent {
   constructor() {
     super()
     this.state = {
-      showHelp: true,
+      showHelp: false, //true,
       canAccept: false
     }
   }
@@ -28,12 +29,12 @@ export default class Welcome extends PureComponent {
     const { showHelp, canAccept } = this.state
     if (showHelp) {
       return (
-        <View style={s.container}>
-          <Text style={s.welcome}>Welcome, Agent {client.currentUser.lastName || client.currentUser.firstName}</Text>
-          <View style={s.helpContainer}>
+        <View style={s.buttonBottomContainer}>
+          <View>
+            <Text style={s.welcome}>Welcome, Agent {client.currentUser.lastName || client.currentUser.firstName}</Text>
             <Carousel texts={helpTexts} onStepChange={this._onStepChange} style={s.carousel} />
-            <Button text="ACCEPT MISSION" onPress={this._accept} disabled={!canAccept} style={s.accept} />
           </View>
+          <Button text="ACCEPT MISSION" onPress={this._accept} disabled={!canAccept} style={s.bottomButton} />
         </View>
       )
     }
@@ -47,26 +48,46 @@ export default class Welcome extends PureComponent {
   renderMethodSelector() {
     const { killMethods } = this.props
     return (
-      <View style={s.killMethods}>
-        <Text style={s.centerText}>Select the method your secret assassin should try to use to take you down:</Text>
-        { killMethods && killMethods.map(m => (
-          <TouchableOpacity key={m.id} onPress={() => this._selectKillMethod(m.id)} style={s.killMethod}>
-            <Text style={s.killMethodTitle}>{m.title}</Text>
-            <Text>{m.description}</Text>
-          </TouchableOpacity>
-        )) }
+      <View style={s.buttonBottomContainer}>
+        <View>
+          <View style={s.selectTitle}>
+            <Text style={s.selectTitleText}>Select Your Method</Text>
+          </View>
+          <View style={s.killMethodsContainer}>
+            <Text>Choose a method that enemy agents must use to eliminate you.</Text>
+              <View style={s.killMethods}>
+                { killMethods && killMethods.map(m => (
+                  <TouchableOpacity key={m.id} onPress={() => this._selectKillMethod(m.id)} style={s.killMethod}>
+                    <Box style={[s.killMethodBox, this.state.killMethod === m.id ? s.highlighted : null]}>
+                      <Text style={s.killMethodTitle}>{m.title}</Text>
+                      <Text>{m.description}</Text>
+                    </Box>
+                  </TouchableOpacity>
+                )) }
+              </View>
+          </View>
+        </View>
+        <Button text="NEXT" style={s.bottomButton} onPress={this._confirmKillMethod} disabled={this.state.killMethod == null} />
       </View>
     )
   }
 
   _selectKillMethod = killMethod => {
-    this.props.fbc.database.public.userRef('user').child('killMethod').set(`${killMethod}`)
+    this.setState({killMethod})
+  }
+
+  _confirmKillMethod = () => {
+    this.props.fbc.database.public.userRef('user').child('killMethod').set(`${this.state.killMethod}`)
   }
 }
 
 const s = StyleSheet.create({
-  container: {
-    flex: 1
+  selectTitle: {
+    padding: 10,
+    backgroundColor: 'rgba(255,255,255,0.1)'
+  },
+  selectTitleText: {
+    fontSize: 18
   },
   carousel: {
     height: 150
@@ -76,16 +97,13 @@ const s = StyleSheet.create({
     marginVertical: 15,
     marginLeft: 7
   },
-  accept: {
+  bottomButton: {
     marginHorizontal: 7,
     marginVertical: 20
   },
-  helpContainer: {
+  buttonBottomContainer: {
     flex: 1,
     justifyContent: 'space-between'
-  },
-  killMethods: {
-    margin: 10
   },
   centerText: {
     textAlign: 'center',
@@ -93,12 +111,27 @@ const s = StyleSheet.create({
     padding: 3
   },
   killMethodTitle: {
-    fontSize: 24,
+    fontSize: 50,
+    textAlign: 'center',
     paddingBottom: 5
   },
+  killMethodsContainer: {
+    padding: 7
+  },
+  killMethods: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginRight: 5
+  },
   killMethod: {
-    padding: 10,
-    marginVertical: 5,
-    backgroundColor: new Color({...(new Color(client.primaryColor)).hsv(), s: 0.4, v: 1.0}).rgbString()    
+    paddingTop: 10,
+    width: '49%'
+  },
+  highlighted: {
+    backgroundColor: 'rgba(255,255,255,0.2)'
+  },
+  killMethodBox: {
+    height: 175
   }
 })
