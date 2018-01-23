@@ -1,6 +1,8 @@
 import React, { PureComponent } from 'react'
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native'
 import client, { Color } from '@doubledutch/rn-client'
+import Button from './Button'
+import Text from './Text'
 import colors from './colors'
 
 export default class Admin extends PureComponent {
@@ -12,28 +14,18 @@ export default class Admin extends PureComponent {
   render() {
     const { users, targets } = this.props
     return (
-      <View style={s.container}>
-        <TouchableOpacity style={s.header} onPress={this._toggleAdmin}>
-          <Text style={s.headerText}>{ this.state.isExpanded ? 'Hide' : 'Show' } admin panel</Text>
-        </TouchableOpacity>
-        { this.state.isExpanded && <View style={s.main}>
-          { targets
-            ? (<View>
-                <Text>Game already started</Text>
-                <TouchableOpacity onPress={this._abortGame}><Text style={s.buttonText}>Abort game</Text></TouchableOpacity>
-              </View>)
-            : (<View>
-              <TouchableOpacity onPress={this._startGame}><Text style={s.buttonText}>Start game with {users.filter(u => !u.isExcluded).length} players</Text></TouchableOpacity>
-            </View>)}
-        </View> }
-        <View>
-        </View>
+      <View style={s.main}>
+        { targets
+          ? (<View>
+              <Text style={s.text}>Game already started</Text>
+              <Button onPress={this._abortGame} text="Abort game" />
+            </View>)
+          : (<View>
+              <Button onPress={this._startGame} text={`Start game with ${users.filter(u => !u.isExcluded).length} players`} />
+            </View>)
+        }
       </View>
     )
-  }
-
-  _toggleAdmin = () => {
-    this.setState({isExpanded: !this.state.isExpanded})
   }
 
   // Randomly assign targets as a single directed cycle including all players.
@@ -82,20 +74,11 @@ export default class Admin extends PureComponent {
 }
 
 const s = StyleSheet.create({
-  container: {
-    backgroundColor: colors.darkGray,
-    color: 'white'
-  },
-  header: {
-    padding: 5,
-  },
-  headerText: {
-    fontSize: 16,
-    color: '#fff',
-    textAlign: 'center'
-  },
   main: {
-    padding: 10
+    padding: 5
+  },
+  text: {
+    paddingVertical: 10
   },
   buttonText: {
     color: 'blue'

@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react'
 import ReactNative, {
-  Alert, FlatList, Image, PermissionsAndroid, TouchableOpacity, Text, TextInput, View
+  Alert, FlatList, Image, PermissionsAndroid, TouchableOpacity, TextInput, View
 } from 'react-native'
 
 import QRCode from 'react-native-qrcode'
 import QRCodeScanner from 'react-native-qrcode-scanner'
 
 import Admin from './Admin'
+import Button from './Button'
 import Welcome from './Welcome'
 
 import client, { Avatar, Color, TitleBar } from '@doubledutch/rn-client'
@@ -16,7 +17,6 @@ import firebase from 'firebase'
 const fbc = FirebaseConnector(client, 'assassins')
 
 fbc.initializeAppWithSimpleBackend()
-console.disableYellowBox = true
 
 const targetsRef = fbc.database.public.adminRef('targets')
 const killsRef = fbc.database.public.allRef('kills')
@@ -108,20 +108,25 @@ export default class HomeView extends PureComponent {
 
     return (
       <View style={s.container}>
-        <Image style={s.backgroundImage} source={{uri:''}} />
         <TitleBar title="Assassins" client={client} signin={this.signin} />
-        { this.state.isAdmin && <Admin users={this.state.users} targets={this.state.targets} fbc={fbc} /> }
-        { !me || !me.killMethod
-          ? <Welcome fbc={fbc} killMethods={this.state.killMethods} />
-          : [
-            this.renderMain(),
-            this.state.killMethods && <FlatList
-              data={usersToShow}
-              extraData={this.state.killsBy}
-              keyExtractor={this._keyExtractor}
-              renderItem={this._renderListPlayer}
-            /> 
-          ]
+        { this.state.isAdmin && <Button
+          style={s.adminButton}
+          onPress={this._toggleAdmin}
+          text={`${this.state.isAdminExpanded ? 'Hide' : 'Show'} admin panel`} />
+        }
+        { this.state.isAdminExpanded
+          ? <Admin users={this.state.users} targets={this.state.targets} fbc={fbc} />
+          : !me || !me.killMethod
+            ? <Welcome fbc={fbc} killMethods={this.state.killMethods} />
+            : [
+              this.renderMain(),
+              this.state.killMethods && <FlatList
+                data={usersToShow}
+                extraData={this.state.killsBy}
+                keyExtractor={this._keyExtractor}
+                renderItem={this._renderListPlayer}
+              /> 
+            ]
         }
       </View>
     )
@@ -130,7 +135,6 @@ export default class HomeView extends PureComponent {
   renderLoading(text) {
     return (
       <View style={s.container}>
-        <Image style={s.loadingImage} source={{uri:''}} />
         <Text style={{position: 'absolute', top: 5, left: 5, color: 'white', backgroundColor: 'transparent'}}>{text}</Text>
       </View>
     )
@@ -213,6 +217,10 @@ export default class HomeView extends PureComponent {
     }
 
     return null
+  }
+
+  _toggleAdmin = () => {
+    this.setState({isAdminExpanded: !this.state.isAdminExpanded})
   }
 
   _getKilled = () => [].concat(...Object.keys(this.state.killsBy).map(by => this.state.killsBy[by])).reduce((map, id) => { map[id] = true; return map }, {})
@@ -327,6 +335,9 @@ const s = ReactNative.StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.gray, // '#4b4a57',
+  },
+  adminButton: {
+    margin: 5,
   },
   me: {
     padding: 10,
