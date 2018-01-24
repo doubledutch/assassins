@@ -48,7 +48,7 @@ export default function Database(fbc) {
 
         component.setState(prevState => ({
           killsBy: {...prevState.killsBy, [kill.by]: prevState.killsBy[kill.by] ? [kill.target, ...prevState.killsBy[kill.by]] : [kill.target]},
-          killed: {...prevState.killed, [kill.target.id]: true}
+          killed: {...prevState.killed, [kill.target]: true}
         }))
       })
 
