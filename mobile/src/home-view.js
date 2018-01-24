@@ -8,6 +8,7 @@ import QRCodeScanner from 'react-native-qrcode-scanner'
 
 import Admin from './Admin'
 import Button from './Button'
+import CrossHares from './CrossHares'
 import Text from './Text'
 import Welcome from './Welcome'
 import Database from './db'
@@ -28,7 +29,8 @@ export default class HomeView extends PureComponent {
       targets: null,
       killMethods: null,
       killsBy: {},
-      killed: {}
+      killed: {},
+      tab: 1
     }
 
     this.signin = db.signin().then(() => this.setState({isSignedIn: true}))
@@ -59,20 +61,12 @@ export default class HomeView extends PureComponent {
   }
 
   render() {
-    const {isAdmin, isAdminExpanded, killed, killMethods, killsBy, players, targets} = this.state
-    players.sort((a,b) => {
-      const score = (killed[b.id] ? 0 : 10000) - ([a.id] ? 0 : 10000)
-        + (killsBy[b.id] || []).length - (killsBy[a.id] || []).length
-      if (score !== 0) return score
-      if (a.lastName !== b.lastName) return a.lastName < b.lastName ? -1 : 1
-      return a.firstName < b.firstName ? -1 : 1
-    })
-
+    const {isAdmin, isAdminExpanded, killMethods, killsBy, players, targets} = this.state
     const me = players.find(u => u.id === client.currentUser.id)
 
     return (
       <View style={s.container}>
-        <TitleBar title="Assassins" client={client} signin={this.signin} />
+        <TitleBar title="Ice Breaker Espionage" client={client} signin={this.signin} />
         { isAdmin && <View style={isAdminExpanded ? {flex:1} : null}>
             <Button
               style={s.adminButton}
@@ -85,8 +79,24 @@ export default class HomeView extends PureComponent {
               markAssassinated={this._adminMarkAssassinated} />
           </View>
         }
-        { !isAdminExpanded && (!me || !me.killMethod
-            ? this.state.killMethods ? <Welcome db={db} killMethods={killMethods} /> : this.renderLoading('LOADING...')
+        { isAdminExpanded
+            ? null // Admin panel hides everything else
+            : killMethods
+              ? me
+                ? me.killMethod
+                  ? targets
+                    ? this.renderMain(me)
+                    : <View style={s.centerChildren}><CrossHares size={200} text="AWAITING YOUR FIRST TARGET" rotate={true} /></View>
+                  : <Welcome db={db} killMethods={killMethods} />
+                : targets
+                  ? <View style={s.centerChildren}><CrossHares size={200} text="GAME ALREADY IN PROGRESS" rotate={true} /></View>
+                  : <View style={s.centerChildren}><CrossHares size={200} text="Nothing to see here, civilian..." rotate={true} /></View>
+              : <View style={s.centerChildren}><CrossHares size={200} text="LOADING..." rotate={true} /></View>
+        }
+        {/* { !isAdminExpanded && (!me || !me.killMethod
+            ? this.state.killMethods
+              ? <Welcome db={db} killMethods={killMethods} />
+              : <View style={s.centerChildren}><CrossHares size={200} text="LOADING..." /></View>
             : <View style={s.container}>
                 { this.renderMain() }
                 { killMethods && <FlatList
@@ -97,20 +107,57 @@ export default class HomeView extends PureComponent {
                 /> }
               </View>
             )
-        }
+        } */}
       </View>
     )
   }
 
-  renderLoading(text) {
+  renderMain(me) {
+    const {killsBy, killed, players, tab} = this.state
+    players.sort((a,b) => {
+      const score = (killed[b.id] ? 0 : 10000) - ([a.id] ? 0 : 10000)
+        + (killsBy[b.id] || []).length - (killsBy[a.id] || []).length
+      if (score !== 0) return score
+      if (a.lastName !== b.lastName) return a.lastName < b.lastName ? -1 : 1
+      return a.firstName < b.firstName ? -1 : 1
+    })
+
+    const whoAssassinatedMe = this._whoAssassinatedMe()
+
     return (
       <View style={s.container}>
-        <Text style={{position: 'absolute', top: 5, left: 5}}>{text}</Text>
+        <View style={s.container}>
+          {
+            tab === 0 && !whoAssassinatedMe ? <View style={s.container}>
+              <Text>Secret code TBD</Text>
+            </View>
+            : tab === 1 && !whoAssassinatedMe ? <View style={s.container}>
+              <Text>Current target TBD</Text>
+            </View>
+            : <View style={s.container}>
+              <Text>Leaderboard TBD</Text>
+            </View>
+          }
+        </View>
+        <View style={s.tabs}>
+          { !whoAssassinatedMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:0})}>
+              <CrossHares size={20} color={tab===0 ? colors.neon : 'white'} />
+              <Text style={[s.tabText, tab===0 ? {color:colors.neon} : null]}>Secret Code</Text>
+            </TouchableOpacity> }
+          { !whoAssassinatedMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:1})}>
+              <CrossHares size={20} color={tab===1 ? colors.neon : 'white'} />
+              <Text style={[s.tabText, tab===1 ? {color:colors.neon} : null]}>Current Target</Text>
+            </TouchableOpacity> }
+          <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:2})}>
+            <CrossHares size={20} color={tab===2 ? colors.neon : 'white'} />
+            <Text style={[s.tabText, tab===2 ? {color:colors.neon} : null]}>Leaderboard</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     )
   }
 
-  renderMain() {    
+  renderMain_OLD() {    
     const {killed, killMethods, players, targets} = this.state
     const me = players.find(u => u.id === client.currentUser.id)
     const whoAssassinatedMe = this._whoAssassinatedMe()
@@ -181,6 +228,7 @@ export default class HomeView extends PureComponent {
       return (
         <View>
           <Text style={{padding: 5}}>Awaiting your first target...</Text>
+          <CrossHares size={200} />
         </View>
       )
     }
@@ -284,6 +332,25 @@ const s = ReactNative.StyleSheet.create({
     flex: 1,
     backgroundColor: colors.gray, // '#4b4a57',
   },
+  tabs: {
+    flexDirection: 'row',
+    height: 60,
+    backgroundColor: colors.lightGray
+  },
+  tab: {
+    flex: 1,
+    padding: 7,
+    alignItems: 'center',
+    justifyContent: 'space-around'
+  },
+  tabText: {
+    fontSize: 12
+  },
+  centerChildren: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   adminButton: {
     margin: 5,
   },
@@ -385,11 +452,6 @@ const s = ReactNative.StyleSheet.create({
   killMethodTitle: {
     fontSize: 24,
     paddingBottom: 5
-  },
-  loadingImage: {
-    flex: 1,
-    height: '100%',
-    resizeMode: 'cover'
   },
   backgroundImage: {
     position: 'absolute',

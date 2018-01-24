@@ -4,6 +4,7 @@ import ReactNative, {
 } from 'react-native'
 import Box from './Box'
 import Button from './Button'
+import Header from './Header'
 import Text from './Text'
 import Carousel from './Carousel'
 import client, { Color } from '@doubledutch/rn-client'
@@ -50,9 +51,7 @@ export default class Welcome extends PureComponent {
     return (
       <View style={s.buttonBottomContainer}>
         <View>
-          <View style={s.selectTitle}>
-            <Text style={s.selectTitleText}>Select Your Method</Text>
-          </View>
+          <Header text="Select Your Method" />
           <View style={s.killMethodsContainer}>
             <Text>Choose a method that enemy agents must use to eliminate you.</Text>
               <View style={s.killMethods}>
@@ -82,13 +81,6 @@ export default class Welcome extends PureComponent {
 }
 
 const s = StyleSheet.create({
-  selectTitle: {
-    padding: 10,
-    backgroundColor: 'rgba(255,255,255,0.1)'
-  },
-  selectTitleText: {
-    fontSize: 18
-  },
   carousel: {
     height: 150
   },
