@@ -202,9 +202,6 @@ export default class HomeView extends PureComponent {
       <View style={s.listPlayerRight}>
         <View style={s.listPlayerName}>
           <Text style={s.listPlayerText}>{item.firstName} {item.lastName}</Text>
-          { this.state.targets && this.state.isAdmin && !this.state.killed[item.id] && <TouchableOpacity onPress={() => this._adminMarkAssassinated(item)}>
-            <Text style={s.buttonText}>Mark dead</Text>
-          </TouchableOpacity> }
         </View>
         { this.state.killsBy[item.id] && (
           <View style={s.kills}>
