@@ -8,39 +8,35 @@ import QRCodeScanner from 'react-native-qrcode-scanner'
 
 import Admin from './Admin'
 import Button from './Button'
+import Text from './Text'
 import Welcome from './Welcome'
+import Database from './db'
 
 import client, { Avatar, Color, TitleBar } from '@doubledutch/rn-client'
 import colors from './colors'
 import FirebaseConnector from '@doubledutch/firebase-connector'
 import firebase from 'firebase'
 const fbc = FirebaseConnector(client, 'assassins')
-
-fbc.initializeAppWithSimpleBackend()
-
-const targetsRef = fbc.database.public.adminRef('targets')
-const killsRef = fbc.database.public.allRef('kills')
-const userRef = fbc.database.public.userRef('user')
-const usersRef = fbc.database.public.usersRef()
-const killMethodsRef = fbc.database.public.adminRef('killMethods')
+const db = Database(fbc)
 
 export default class HomeView extends PureComponent {
   constructor() {
     super()
 
     this.state = {
-      users: [],
+      players: [],
       targets: null,
       killMethods: null,
-      killsBy: {}
+      killsBy: {},
+      killed: {}
     }
 
-    this.signin = fbc.signin().then(() => this.setState({isSignedIn: true}))
+    this.signin = db.signin().then(() => this.setState({isSignedIn: true}))
   }
 
   componentDidMount() {
     this.signin.then(() => {
-      fbc.database.private.adminableUserRef('adminToken').once('value', async data => {
+      db.database.private.adminableUserRef('adminToken').once('value', async data => {
         const longLivedToken = data.val()
         if (longLivedToken) {
           console.log('Attendee appears to be admin.  Logging out and logging in w/ admin token.')
@@ -54,79 +50,53 @@ export default class HomeView extends PureComponent {
       })
 
       const wireListeners = () => {
-        usersRef.on('value', data => {
-          const val = data.val()
-          if (val) {
-            this.setState({users: Object.keys(val).map(id => val[id].user)})
-          } else {
-            this.setState({users: []})
-          }
-        })
-  
-        // Always signal that the player is in the game when it is open.
-        userRef.on('value', data => !data.val() && userRef.set(client.currentUser))
-  
-        targetsRef.on('value', data => {
-          this.setState({targets: data.val()})
-        })
-
-        killsRef.on('child_added', data => {
-          const kill = data.val()
-
-          this.setState(prevState => ({
-            killsBy: {...prevState.killsBy, [kill.by]: prevState.killsBy[kill.by] ? [kill.target, ...prevState.killsBy[kill.by]] : [kill.target]}
-          }))
-        })
-
-        // Removes all kills
-        killsRef.on('value', data => {
-          if (!data.val()) this.setState({killsBy: {}})
-        })
-
-        killMethodsRef.on('value', data => {
-          const val = data.val()
-          if (val) {
-            this.setState({killMethods: Object.keys(val).reduce((arr, i) => {arr[+i] = {...val[i], id: +i}; return arr}, [])})
-          }
-        })
+        db.watchPlayers(this)
+        db.watchTargets(this)
+        db.watchKills(this)
+        db.watchKillMethods(this)
       }
     })
   }
 
-  render() {    
-    this.killed = this._getKilled()
+  render() {
+    const {isAdmin, isAdminExpanded, killed, killMethods, killsBy, players, targets} = this.state
+    players.sort((a,b) => {
+      const score = (killed[b.id] ? 0 : 10000) - ([a.id] ? 0 : 10000)
+        + (killsBy[b.id] || []).length - (killsBy[a.id] || []).length
+      if (score !== 0) return score
+      if (a.lastName !== b.lastName) return a.lastName < b.lastName ? -1 : 1
+      return a.firstName < b.firstName ? -1 : 1
+    })
 
-    const usersToShow = this.state.targets
-      ? this.state.users.filter(u => this.state.targets[u.id])
-      : this.state.users
-
-    usersToShow.sort((a,b) =>
-      (this.killed[b.id] ? 0 : 10000) - (this.killed[a.id] ? 0 : 10000)
-      + (this.state.killsBy[b.id] || []).length - (this.state.killsBy[a.id] || []).length)
-
-    const me = this.state.users.find(u => u.id === client.currentUser.id)
+    const me = players.find(u => u.id === client.currentUser.id)
 
     return (
       <View style={s.container}>
         <TitleBar title="Assassins" client={client} signin={this.signin} />
-        { this.state.isAdmin && <Button
-          style={s.adminButton}
-          onPress={this._toggleAdmin}
-          text={`${this.state.isAdminExpanded ? 'Hide' : 'Show'} admin panel`} />
+        { isAdmin && <View style={isAdminExpanded ? {flex:1} : null}>
+            <Button
+              style={s.adminButton}
+              onPress={this._toggleAdmin}
+              text={`${isAdminExpanded ? 'Hide' : 'Show'} admin panel`} />
+            <Admin
+              isExpanded={isAdminExpanded}
+              targets={targets}
+              db={db}
+              markAssassinated={this._adminMarkAssassinated} />
+          </View>
         }
-        { this.state.isAdminExpanded
-          ? <Admin users={this.state.users} targets={this.state.targets} fbc={fbc} />
-          : !me || !me.killMethod
-            ? <Welcome fbc={fbc} killMethods={this.state.killMethods} />
-            : [
-              this.renderMain(),
-              this.state.killMethods && <FlatList
-                data={usersToShow}
-                extraData={this.state.killsBy}
-                keyExtractor={this._keyExtractor}
-                renderItem={this._renderListPlayer}
-              /> 
-            ]
+        { !isAdminExpanded && (!me || !me.killMethod
+            ? this.state.killMethods ? <Welcome db={db} killMethods={killMethods} /> : this.renderLoading('LOADING...')
+            : <View style={s.container}>
+                { this.renderMain() }
+                { killMethods && <FlatList
+                  data={players}
+                  extraData={killsBy}
+                  keyExtractor={this._keyExtractor}
+                  renderItem={this._renderListPlayer}
+                /> }
+              </View>
+            )
         }
       </View>
     )
@@ -135,25 +105,24 @@ export default class HomeView extends PureComponent {
   renderLoading(text) {
     return (
       <View style={s.container}>
-        <Text style={{position: 'absolute', top: 5, left: 5, color: 'white', backgroundColor: 'transparent'}}>{text}</Text>
+        <Text style={{position: 'absolute', top: 5, left: 5}}>{text}</Text>
       </View>
     )
   }
 
   renderMain() {    
-    if (!this.state.killMethods) return this.renderLoading('LOADING...')
-
-    const me = this.state.users.find(u => u.id === client.currentUser.id)
+    const {killed, killMethods, players, targets} = this.state
+    const me = players.find(u => u.id === client.currentUser.id)
     const whoAssassinatedMe = this._whoAssassinatedMe()
     const yourTarget = this._yourTarget()
 
-    if (this.state.targets) {
-      if (this.state.targets[client.currentUser.id]) {
+    if (targets && killMethods) {
+      if (targets[client.currentUser.id]) {
         if (whoAssassinatedMe) {
           return (
             <View>
               <Text style={s.dead}>DEAD!</Text>
-              <Text style={s.centerText}>{whoAssassinatedMe.firstName} {whoAssassinatedMe.lastName} took you down{this.killed[whoAssassinatedMe.id] ? ' before also being eliminated' : ''}!</Text>
+              <Text style={s.centerText}>{whoAssassinatedMe.firstName} {whoAssassinatedMe.lastName} took you down{killed[whoAssassinatedMe.id] ? ' before also being eliminated' : ''}!</Text>
               <View style={s.me}>
                 <View>
                   <Avatar user={client.currentUser} size={100} client={client} />
@@ -162,15 +131,15 @@ export default class HomeView extends PureComponent {
                 <Text style={s.gun}>🔫</Text>
                 <View>
                   <Avatar user={whoAssassinatedMe} size={100} client={client} />
-                  { this.killed[whoAssassinatedMe.id] && <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View> }
+                  { killed[whoAssassinatedMe.id] && <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View> }
                 </View>
               </View>
             </View>
           )
-        } else if (Object.keys(this.killed).length >= Object.keys(this.state.targets).length - 1) {
+        } else if (Object.keys(killed).length >= Object.keys(this.state.targets).length - 1) {
           return <View style={s.me}><Text style={[s.meText, s.centerText]}>🥇 You are the last assassin standing! 🥇</Text></View>
         } else if (yourTarget) {
-          const killMethod = this.state.killMethods[+yourTarget.killMethod] || this.state.killMethods[0]
+          const killMethod = killMethods[+yourTarget.killMethod] || killMethods[0]
           return (
             <View>
               <View style={s.me}>
@@ -211,7 +180,7 @@ export default class HomeView extends PureComponent {
     } else if (this.state.isSignedIn) {
       return (
         <View>
-          <Text style={{padding: 5, color: 'black', backgroundColor: 'transparent'}}>Awaiting your first target...</Text>
+          <Text style={{padding: 5}}>Awaiting your first target...</Text>
         </View>
       )
     }
@@ -223,34 +192,24 @@ export default class HomeView extends PureComponent {
     this.setState({isAdminExpanded: !this.state.isAdminExpanded})
   }
 
-  _getKilled = () => [].concat(...Object.keys(this.state.killsBy).map(by => this.state.killsBy[by])).reduce((map, id) => { map[id] = true; return map }, {})
-
   _keyExtractor = u => u.id
   _renderListPlayer = ({item}) => (
     <View style={s.listPlayer}>
       <View>
         <Avatar user={item} size={60} client={client} />
-        { this.killed[item.id] && <View style={s.killedXContainer}><Text style={s.killedX}>❌</Text></View> }
+        { this.state.killed[item.id] && <View style={s.killedXContainer}><Text style={s.killedX}>❌</Text></View> }
       </View>
       <View style={s.listPlayerRight}>
         <View style={s.listPlayerName}>
           <Text style={s.listPlayerText}>{item.firstName} {item.lastName}</Text>
-          { this.state.targets && this.state.isAdmin && !this.killed[item.id] && <TouchableOpacity onPress={() => this._adminMarkAssassinated(item)}>
+          { this.state.targets && this.state.isAdmin && !this.state.killed[item.id] && <TouchableOpacity onPress={() => this._adminMarkAssassinated(item)}>
             <Text style={s.buttonText}>Mark dead</Text>
           </TouchableOpacity> }
-          { !this.state.targets && this.state.isAdmin && <TouchableOpacity onPress={() => this._adminRemoveStalePlayer(item)}>
-            <Text style={s.buttonText}>Remove stale</Text>
-          </TouchableOpacity> }
-          { !this.state.targets && this.state.isAdmin &&
-            (item.isExcluded
-              ? <TouchableOpacity onPress={() => this._excludePlayerFromNextGame(item, false)}><Text style={s.centerText}>❌</Text></TouchableOpacity>
-              : <TouchableOpacity onPress={() => this._excludePlayerFromNextGame(item, true)}><Text style={s.centerText}>✅</Text></TouchableOpacity>
-            ) }
         </View>
         { this.state.killsBy[item.id] && (
           <View style={s.kills}>
             <Text style={s.killsIcon}>🎯</Text>
-            { this.state.killsBy[item.id].map(id => <Avatar style={s.killedAvatar} key={id} user={this.state.users.find(u => u.id === id)} size={Math.min(30, 240 / this.state.killsBy[item.id].length)} client={client} />) }
+            { this.state.killsBy[item.id].map(id => <Avatar style={s.killedAvatar} key={id} user={this.state.players.find(u => u.id === id)} size={Math.min(30, 240 / this.state.killsBy[item.id].length)} client={client} />) }
           </View>)}
         <View>
         </View>
@@ -258,13 +217,9 @@ export default class HomeView extends PureComponent {
     </View>
   )
 
-  _excludePlayerFromNextGame(player, isExcluded) {
-    fbc.database.public.usersRef(player.id).child('user').child('isExcluded').set(isExcluded)
-  }
-
-  _adminMarkAssassinated(player) {
+  _adminMarkAssassinated = player => {
     const assassinId = this.findAssassinIdFor(player.id)
-    const assassin = this.state.users.find(u => u.id === assassinId)
+    const assassin = this.state.players.find(u => u.id === assassinId)
     if (assassinId && assassin) {
       Alert.alert(
         `Mark ${player.firstName} assassinated by ${assassin.firstName}`,
@@ -279,27 +234,23 @@ export default class HomeView extends PureComponent {
     }
   }
 
-  _adminRemoveStalePlayer(player) {
-    fbc.database.public.usersRef(player.id).remove()
-  }
-
   _markAssassinated(player, assassinId) {
     if (!assassinId) assassinId = client.currentUser.id
-    killsRef.push({ by: assassinId, target: player.id })
+    db.addKill({ by: assassinId, target: player.id })
   }
 
   _whoAssassinatedMe() {
     const assassinId = Object.keys(this.state.killsBy).find(id => this.state.killsBy[id].includes(client.currentUser.id))
-    if (assassinId) return this.state.users.find(u => u.id === assassinId)
+    if (assassinId) return this.state.players.find(u => u.id === assassinId)
     return null
   }
 
   _yourTarget() {
     if (!this.state.targets) return null
-    const killed = this._getKilled()
+    const killed = db.getKilled(this.state.killsBy)
     let targetId = this.state.targets[client.currentUser.id]
     while (client.currentUser.id !== targetId && killed[targetId]) targetId = this.state.targets[targetId]
-    return this.state.users.find(u => u.id === targetId)
+    return this.state.players.find(u => u.id === targetId)
   }
 
   _showScanner = () => this.setState({showScanner: true})
@@ -322,7 +273,7 @@ export default class HomeView extends PureComponent {
       .map(assassinId => ({ assassinId, targetId: this.state.targets[assassinId] }))
       .reduce((reverseTargets, {assassinId, targetId}) => { reverseTargets[targetId] = assassinId; return reverseTargets }, {})
 
-    const killed = this._getKilled()
+    const killed = db.getKilled(this.state.killsBy)
     let assassinId = reverseTargets[playerId]
     while (assassinId !== playerId && killed[assassinId]) assassinId = reverseTargets[assassinId]
     if (assassinId === playerId) return null

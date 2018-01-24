@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
-import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native'
-import client, { Color } from '@doubledutch/rn-client'
+import { Alert, StyleSheet, TouchableOpacity, View, FlatList } from 'react-native'
+import client, { Avatar, Color } from '@doubledutch/rn-client'
 import Button from './Button'
 import Text from './Text'
 import colors from './colors'
@@ -8,30 +8,79 @@ import colors from './colors'
 export default class Admin extends PureComponent {
   constructor() {
     super()
-    this.state = { isExpanded: false }
+    this.state = {
+      players: [],
+      targets: null,
+      killsBy: {},
+      killed: {}
+    }
+  }
+
+  componentDidMount() {
+    const {db} = this.props
+    db.watchPlayers(this)
+    db.watchTargets(this)
+    db.watchKills(this)
   }
 
   render() {
-    const { users, targets } = this.props
+    const { players, targets } = this.state
+
     return (
-      <View style={s.main}>
-        { targets
-          ? (<View>
-              <Text style={s.text}>Game already started</Text>
-              <Button onPress={this._abortGame} text="Abort game" />
-            </View>)
-          : (<View>
-              <Button onPress={this._startGame} text={`Start game with ${users.filter(u => !u.isExcluded).length} players`} />
-            </View>)
-        }
-      </View>
+      this.props.isExpanded
+      ? <View style={s.main}>
+          { targets
+            ? <View>
+                <Text style={s.text}>Game already started with {players.length} players</Text>
+                <Button onPress={this._abortGame} text="Abort game" />
+              </View>
+            : players.length > 1
+              ? <Button onPress={this._startGame} text={`Start game with ${players.length} players`} />
+              : <Button disabled={true} text="Add more players via CMS" />
+          }
+          <View style={s.main}>
+            <FlatList
+              data={players}
+              extraData={this.state}
+              keyExtractor={this._keyExtractor}
+              renderItem={this._renderListPlayer}
+            />
+          </View>
+        </View>
+      : null
+    )
+  }
+
+  _keyExtractor = p => p.id
+
+  _renderListPlayer = ({item}) => (
+    <View style={s.listPlayer}>
+      { this.state.targets
+        ? (!this.state.killed[item.id] && <Button style={s.remove} text="☠️" onPress={() => this.props.markAssassinated(item)} />)
+        : <Button style={s.remove} text="❌️" onPress={() => this._removePlayer(item)} />
+      }
+      <Avatar user={item} size={40} client={client} />
+      <Text style={s.listPlayerText}>{item.firstName} {item.lastName}</Text>
+    </View>
+  )
+
+  _removePlayer = player => {
+    Alert.alert(
+      `Remove ${player.firstName}?`,
+      'This can only be undone from the CMS.',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Remove', onPress: () => {
+          this.props.db.removePlayer(player)
+        }},
+      ]
     )
   }
 
   // Randomly assign targets as a single directed cycle including all players.
   _startGame = () => {
     const targets = {}
-    const players = this.props.users.filter(u => !u.isExcluded)
+    const players = this.state.players.slice()
     const firstPlayer = players.pop()
     let currentPlayer = firstPlayer
     while (players.length) {
@@ -43,38 +92,28 @@ export default class Admin extends PureComponent {
 
     targets[currentPlayer.id] = firstPlayer.id
 
-    this.props.fbc.database.public.adminRef('targets').set(targets)
+    this.props.db.setTargets(targets)
   }
 
   _abortGame = () => {
+    const {db} = this.props
     Alert.alert(
       'Abort Game',
       'Are you sure?',
       [
         {text: 'Cancel', style: 'cancel'},
         {text: 'OK', onPress: () => {
-          this.props.fbc.database.public.adminRef('targets').remove()
-          this.props.fbc.database.public.allRef('kills').remove()
-
-          Alert.alert(
-            'Clear players?',
-            'Do you also want to remove all players who do not currently have the game open? They will have to re-enter to be included in future games.',
-            [
-              {text: 'No', style: 'cancel'},
-              {text: 'Yes', onPress: () => this.props.fbc.database.public.usersRef().remove()}
-            ]
-          )
+          db.removeTargets()
+          db.removeKills()
         }},
       ]
     )
-  }
-
-  _clearPlayers = () => {
   }
 }
 
 const s = StyleSheet.create({
   main: {
+    flex: 1,
     padding: 5
   },
   text: {
@@ -82,5 +121,20 @@ const s = StyleSheet.create({
   },
   buttonText: {
     color: 'blue'
+  },
+  list: {
+    flex: 1
+  },
+  listPlayer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 5
+  },
+  listPlayerText: {
+    fontSize: 18,
+    marginLeft: 5
+  },
+  remove: {
+    marginRight: 10
   }
 })

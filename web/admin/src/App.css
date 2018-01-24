@@ -1,8 +1,42 @@
-.App-intro {
-  font-size: large;
-  text-align: center;
+.gameState {
+  margin: 0 0 0.3em 0;
+}
+
+h4 {
+  margin: 0 0 0.5em 0;
 }
 
 .avatar {
   width: 40px;
+}
+
+ul.userList {
+  width: 270px;
+  height: 500px;
+  overflow-y: scroll;
+  display: inline-block;
+  list-style-type: none;
+  border: 1px solid gray;
+  -webkit-margin-before: 0;
+  -webkit-margin-after: 0;
+  -webkit-padding-start: 0;
+  overflow-x: hidden;
+  white-space: nowrap;
+}
+
+ul.userList li {
+  padding: 3px;
+}
+
+ul.userList li span {
+  vertical-align: middle;
+}
+
+button.move {
+  margin-right: 5px;
+}
+
+.userListContainer {
+  display: inline-block;
+  padding-right: 10px;
 }

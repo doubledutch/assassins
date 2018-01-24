@@ -77,7 +77,7 @@ export default class Welcome extends PureComponent {
   }
 
   _confirmKillMethod = () => {
-    this.props.fbc.database.public.userRef('user').child('killMethod').set(`${this.state.killMethod}`)
+    this.props.db.setPlayerKillMethod(`${this.state.killMethod}`)
   }
 }
 
