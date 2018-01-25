@@ -9,7 +9,7 @@ import QRCodeScanner from 'react-native-qrcode-scanner'
 import Admin from './Admin'
 import Box from './Box'
 import Button from './Button'
-import CrossHares from './CrossHares'
+import CrossHairs from './CrossHairs'
 import Header from './Header'
 import Smiley from './Smiley'
 import Text from './Text'
@@ -96,28 +96,13 @@ export default class HomeView extends PureComponent {
                 ? me.killMethod
                   ? targets
                     ? this.renderMain(me)
-                    : <View style={s.centerChildren}><CrossHares size={200} text="AWAITING YOUR FIRST TARGET" rotate={true} /></View>
+                    : <View style={s.centerChildren}><CrossHairs size={200} text="AWAITING YOUR FIRST TARGET" rotate={true} /></View>
                   : <Welcome db={db} killMethods={killMethods} />
                 : targets
-                  ? <View style={s.centerChildren}><CrossHares size={200} text="GAME ALREADY IN PROGRESS" rotate={true} /></View>
-                  : <View style={s.centerChildren}><CrossHares size={200} text="Nothing to see here, civilian..." rotate={true} /></View>
-              : <View style={s.centerChildren}><CrossHares size={200} text="LOADING..." rotate={true} /></View>
+                  ? <View style={s.centerChildren}><CrossHairs size={200} text="GAME ALREADY IN PROGRESS" rotate={true} /></View>
+                  : <View style={s.centerChildren}><CrossHairs size={200} text="Nothing to see here, civilian..." rotate={true} /></View>
+              : <View style={s.centerChildren}><CrossHairs size={200} text="LOADING..." rotate={true} /></View>
         }
-        {/* { !isAdminExpanded && (!me || !me.killMethod
-            ? this.state.killMethods
-              ? <Welcome db={db} killMethods={killMethods} />
-              : <View style={s.centerChildren}><CrossHares size={200} text="LOADING..." /></View>
-            : <View style={s.container}>
-                { this.renderMain() }
-                { killMethods && <FlatList
-                  data={players}
-                  extraData={killsBy}
-                  keyExtractor={this._keyExtractor}
-                  renderItem={this._renderListPlayer}
-                /> }
-              </View>
-            )
-        } */}
       </View>
     )
   }
@@ -186,7 +171,7 @@ export default class HomeView extends PureComponent {
               <Text style={[s.tabText, tab===0 ? {color:colors.neon} : null]}>Secret Code</Text>
             </TouchableOpacity> }
           { !isGameOverForMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:1})}>
-              <CrossHares size={20} color={tab===1 ? colors.neon : 'white'} />
+              <CrossHairs size={20} color={tab===1 ? colors.neon : 'white'} />
               <Text style={[s.tabText, tab===1 ? {color:colors.neon} : null]}>Current Target</Text>
             </TouchableOpacity> }
           <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:2})}>
