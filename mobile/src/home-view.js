@@ -11,6 +11,7 @@ import Box from './Box'
 import Button from './Button'
 import CrossHares from './CrossHares'
 import Header from './Header'
+import Smiley from './Smiley'
 import Text from './Text'
 import Welcome from './Welcome'
 import Database from './db'
@@ -172,9 +173,9 @@ export default class HomeView extends PureComponent {
             </View>
             : <View style={s.container}>
               <Header text="Mission Updates" />
-              <View style={s.section}>
+              <View style={[s.section, {flex: 0.6}]}>
                 { kills.length > 0
-                  ? this.renderMissionUpdate(kills[0])
+                  ? <FlatList data={kills} keyExtractor={this._killKeyExtractor} renderItem={this.renderMissionUpdate} />
                   : <Text>No eliminations yet. Who will be the first?</Text>
                 }
 
@@ -183,7 +184,7 @@ export default class HomeView extends PureComponent {
               <View style={[s.section, s.container]}>
                 <FlatList
                   data={players}
-                  extraData={killsBy}
+                  extraData={kills}
                   keyExtractor={this._keyExtractor}
                   renderItem={this._renderListPlayer} />
               </View>
@@ -208,19 +209,22 @@ export default class HomeView extends PureComponent {
     )
   }
 
-  renderMissionUpdate(kill) {
-    const renderPlayer = player => (<View style={{flex:1, alignItems: 'center'}}>
-        <Avatar size={50} user={player} client={client} />
+  _killKeyExtractor = kill => `${kill.by}:${kill.target}`
+
+  renderMissionUpdate = ({item}) => {
+    const renderPlayer = player => (<View style={{flex:1, alignItems: 'center', justifyContent: 'center'}}>
+        <Avatar size={40} user={player} client={client} />
         <Text style={{fontSize:16, marginTop: 7, textAlign: 'center'}}>{player.firstName} {player.lastName}</Text>
       </View>)
 
     const {players} = this.state
-    const killer = players.find(u => u.id === kill.by)
-    const killed = players.find(u => u.id === kill.target)
+    const killer = players.find(u => u.id === item.by)
+    const killed = players.find(u => u.id === item.target)
     return (
-      <Box style={[s.row, {justifyContent: 'space-between'}]}>
+      <Box style={{flexDirection: 'row'}}>
         {renderPlayer(killer)}
-        <View>
+        <View style={{flex: 0.7, alignItems: 'center', justifyContent: 'space-around', paddingVertical: 5}}>
+          <Smiley size={30} />
           <Text>Eliminated</Text>
         </View>
         {renderPlayer(killed)}
@@ -315,10 +319,10 @@ export default class HomeView extends PureComponent {
   _renderListPlayer = ({item}) => (
     <Box style={[s.listPlayer, this.state.killed[item.id] ? {opacity:0.6} : null]}>
       <Avatar user={item} size={50} client={client} style={{marginRight:18}} />
-      <View style={{justifyContent:'space-between'}}>
+      <View style={{justifyContent:'space-between', flex:1}}>
         <Text style={{fontSize: 18}}>{item.firstName} {item.lastName}</Text>
-        <View style={s.row}>
-          { this.state.killsBy[item.id] && <View style={s.row}>
+        <View style={[{flexDirection: 'row', flexWrap:'wrap'}]}>
+          { this.state.killsBy[item.id] && <View style={[s.row, {marginRight:5}]}>
               <Text>Eliminated:  </Text>
               { this.state.killsBy[item.id].map(id => <Avatar
                   style={s.smallAvatar} key={id}

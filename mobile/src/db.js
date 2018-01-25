@@ -55,7 +55,7 @@ export default function Database(fbc) {
 
       // Watch removal of all kills
       killsRef.on('value', data => {
-        if (!data.val()) component.setState({killsBy: {}, killed: {}})
+        if (!data.val()) component.setState({killsBy: {}, killed: {}, kills: []})
       })
     },
     addKill(kill) {
