@@ -5,10 +5,11 @@ import colors from './colors'
 
 export default class Button extends PureComponent {
   render() {
-    const { disabled, text } = this.props
+    const { children, disabled, style, text } = this.props
     return (
-      <TouchableOpacity {...this.props} style={[s.button, disabled ? s.buttonDisabled : null, this.props.style]}>
-        <Text style={[s.buttonText, disabled ? s.buttonTextDisabled : null]}>{text}</Text>
+      <TouchableOpacity {...this.props} style={[s.button, disabled ? s.buttonDisabled : null, style]}>
+        {children}
+        <Text style={[s.buttonText, disabled ? s.buttonTextDisabled : null]}>{children?' ':''}{text}</Text>
       </TouchableOpacity>
     )
   }
@@ -16,11 +17,12 @@ export default class Button extends PureComponent {
 
 const s = StyleSheet.create({
   button: {
+    flexDirection: 'row',
     borderWidth: 1,
     borderColor: colors.neon,
     borderRadius: 5,
     padding: 10,
-    alignItems: 'center'
+    justifyContent: 'center'
   },
   buttonDisabled: {
     borderColor: colors.darkNeon

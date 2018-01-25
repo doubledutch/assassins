@@ -7,8 +7,10 @@ import QRCode from 'react-native-qrcode'
 import QRCodeScanner from 'react-native-qrcode-scanner'
 
 import Admin from './Admin'
+import Box from './Box'
 import Button from './Button'
 import CrossHares from './CrossHares'
+import Header from './Header'
 import Text from './Text'
 import Welcome from './Welcome'
 import Database from './db'
@@ -20,6 +22,12 @@ import firebase from 'firebase'
 const fbc = FirebaseConnector(client, 'assassins')
 const db = Database(fbc)
 
+const killMethods = [
+  {title: '📇', description: 'You accept a business card from the enemy agent', instructions: 'Hand your business card to the target'},
+  {title: '😄', description: 'The enemy agent places a sticker on you without you knowing', instructions: 'Place a sticker on the target without them knowing'},
+  {title: '📸', description: 'The enemy agent takes a photo with you and him/herself', instructions: 'Take a photo with yourself and the target'}
+]
+
 export default class HomeView extends PureComponent {
   constructor() {
     super()
@@ -27,7 +35,6 @@ export default class HomeView extends PureComponent {
     this.state = {
       players: [],
       targets: null,
-      killMethods: null,
       killsBy: {},
       killed: {},
       tab: 1
@@ -52,16 +59,17 @@ export default class HomeView extends PureComponent {
       })
 
       const wireListeners = () => {
-        db.watchPlayers(this)
         db.watchTargets(this)
         db.watchKills(this)
-        db.watchKillMethods(this)
+        db.watchPlayers(this)
+        // Small hack at the end to know when initial data is all loaded.
+        db.database.public.adminRef().once('value', () => this.setState({isLoaded: true}))
       }
     })
   }
 
   render() {
-    const {isAdmin, isAdminExpanded, killMethods, killsBy, players, targets} = this.state
+    const {isAdmin, isAdminExpanded, isLoaded, killsBy, players, targets} = this.state
     const me = players.find(u => u.id === client.currentUser.id)
 
     return (
@@ -81,7 +89,7 @@ export default class HomeView extends PureComponent {
         }
         { isAdminExpanded
             ? null // Admin panel hides everything else
-            : killMethods
+            : isLoaded
               ? me
                 ? me.killMethod
                   ? targets
@@ -113,7 +121,7 @@ export default class HomeView extends PureComponent {
   }
 
   renderMain(me) {
-    const {killsBy, killed, players, tab} = this.state
+    const {killed, killsBy, players, tab} = this.state
     players.sort((a,b) => {
       const score = (killed[b.id] ? 0 : 10000) - ([a.id] ? 0 : 10000)
         + (killsBy[b.id] || []).length - (killsBy[a.id] || []).length
@@ -123,25 +131,46 @@ export default class HomeView extends PureComponent {
     })
 
     const whoAssassinatedMe = this._whoAssassinatedMe()
-
+    const yourTarget = this._yourTarget()
+    const killMethod = yourTarget ? killMethods[+yourTarget.killMethod] || killMethods[0] : null
+    
     return (
       <View style={s.container}>
         <View style={s.container}>
           {
             tab === 0 && !whoAssassinatedMe ? <View style={s.container}>
-              <Text>Secret code TBD</Text>
+              <Header text="Secret Code" />
+              <View></View>
+              <Text>TBD</Text>
             </View>
             : tab === 1 && !whoAssassinatedMe ? <View style={s.container}>
-              <Text>Current target TBD</Text>
+              <Header text="Target Acquired" />
+              <View style={[s.section, s.container]}>
+                <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
+                  <Avatar size={150} user={yourTarget} client={client} />
+                  <View>
+                    <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{yourTarget.firstName} {yourTarget.lastName}</Text>
+                    <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
+                  </View>
+                </Box>
+                <Box style={{marginVertical: 7, paddingVertical: 20, flexDirection: 'row', alignItems: 'center'}}>
+                  <Text style={{fontSize: 50, marginRight: 10}}>{killMethod.title}</Text>
+                  <Text style={{flex:1, fontSize: 16}}>{killMethod.instructions}</Text>
+                </Box>
+                <Button text="CONFIRM MISSION COMPLETE"><TabImage type="secret_code" selected={true} /></Button>
+              </View>
             </View>
             : <View style={s.container}>
-              <Text>Leaderboard TBD</Text>
+              <Header text="Mission Updates" />
+              <Text>TBD</Text>
+              <Header text="Leaderboard" />
+              <Text>TBD</Text>
             </View>
           }
         </View>
         <View style={s.tabs}>
           { !whoAssassinatedMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:0})}>
-              <CrossHares size={20} color={tab===0 ? colors.neon : 'white'} />
+              <TabImage type="secret_code" selected={tab===0} />
               <Text style={[s.tabText, tab===0 ? {color:colors.neon} : null]}>Secret Code</Text>
             </TouchableOpacity> }
           { !whoAssassinatedMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:1})}>
@@ -149,7 +178,7 @@ export default class HomeView extends PureComponent {
               <Text style={[s.tabText, tab===1 ? {color:colors.neon} : null]}>Current Target</Text>
             </TouchableOpacity> }
           <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:2})}>
-            <CrossHares size={20} color={tab===2 ? colors.neon : 'white'} />
+            <TabImage type="trophy" selected={tab===2} />
             <Text style={[s.tabText, tab===2 ? {color:colors.neon} : null]}>Leaderboard</Text>
           </TouchableOpacity>
         </View>
@@ -158,12 +187,12 @@ export default class HomeView extends PureComponent {
   }
 
   renderMain_OLD() {    
-    const {killed, killMethods, players, targets} = this.state
+    const {killed, players, targets} = this.state
     const me = players.find(u => u.id === client.currentUser.id)
     const whoAssassinatedMe = this._whoAssassinatedMe()
     const yourTarget = this._yourTarget()
 
-    if (targets && killMethods) {
+    if (targets) {
       if (targets[client.currentUser.id]) {
         if (whoAssassinatedMe) {
           return (
@@ -326,6 +355,10 @@ export default class HomeView extends PureComponent {
   }
 }
 
+const TabImage = props => (<Image
+  source={{uri: `https://dml2n2dpleynv.cloudfront.net/extensions/espionage/${props.type}_${props.selected ? 'green' : 'white'}.png`}}
+  style={s.tabImage} />)
+
 const fontSize = 18
 const s = ReactNative.StyleSheet.create({
   container: {
@@ -343,8 +376,15 @@ const s = ReactNative.StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around'
   },
+  tabImage: {
+    height: 20,
+    width: 20
+  },
   tabText: {
-    fontSize: 12
+    fontSize: 13
+  },
+  section: {
+    padding: 7
   },
   centerChildren: {
     flex: 1,

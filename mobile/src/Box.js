@@ -21,10 +21,10 @@ const s = StyleSheet.create({
   container: {
     padding: 7,
     borderRadius: 5,
-    borderColor: 'rgba(0,0,0, 0.15)',
+    borderColor: 'rgba(0,0,0, 0.25)',
     borderBottomWidth: 2,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)'
+    backgroundColor: 'rgba(255,255,255,0.1)'
   }
 })
