@@ -4,7 +4,7 @@ import Text from './Text'
 import colors from './colors'
 
 const borderRatio = 0.075
-export default class CrossHares extends Component {
+export default class CrossHairs extends Component {
   rotation = new Animated.Value(0)
 
   componentDidMount() {
