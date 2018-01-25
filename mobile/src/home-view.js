@@ -133,17 +133,18 @@ export default class HomeView extends PureComponent {
     const whoAssassinatedMe = this._whoAssassinatedMe()
     const yourTarget = this._yourTarget()
     const killMethod = yourTarget ? killMethods[+yourTarget.killMethod] || killMethods[0] : null
-    
+    const isGameOver = Object.keys(killed).length >= Object.keys(this.state.targets).length - 1
+    const isGameOverForMe = isGameOver || whoAssassinatedMe
     return (
       <View style={s.container}>
         <View style={s.container}>
           {
-            tab === 0 && !whoAssassinatedMe ? <View style={s.container}>
+            tab === 0 && !isGameOverForMe ? <View style={s.container}>
               <Header text="Secret Code" />
               <View></View>
               <Text>TBD</Text>
             </View>
-            : tab === 1 && !whoAssassinatedMe ? <View style={s.container}>
+            : tab === 1 && !isGameOverForMe ? <View style={s.container}>
               <Header text="Target Acquired" />
               <View style={[s.section, s.container]}>
                 <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
@@ -169,11 +170,11 @@ export default class HomeView extends PureComponent {
           }
         </View>
         <View style={s.tabs}>
-          { !whoAssassinatedMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:0})}>
+          { !isGameOverForMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:0})}>
               <TabImage type="secret_code" selected={tab===0} />
               <Text style={[s.tabText, tab===0 ? {color:colors.neon} : null]}>Secret Code</Text>
             </TouchableOpacity> }
-          { !whoAssassinatedMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:1})}>
+          { !isGameOverForMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:1})}>
               <CrossHares size={20} color={tab===1 ? colors.neon : 'white'} />
               <Text style={[s.tabText, tab===1 ? {color:colors.neon} : null]}>Current Target</Text>
             </TouchableOpacity> }
