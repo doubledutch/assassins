@@ -46,9 +46,10 @@ export default function Database(fbc) {
       killsRef.on('child_added', data => {
         const kill = data.val()
 
-        component.setState(prevState => ({
-          killsBy: {...prevState.killsBy, [kill.by]: prevState.killsBy[kill.by] ? [kill.target, ...prevState.killsBy[kill.by]] : [kill.target]},
-          killed: {...prevState.killed, [kill.target]: true}
+        component.setState(state => ({
+          killsBy: {...state.killsBy, [kill.by]: state.killsBy[kill.by] ? [kill.target, ...state.killsBy[kill.by]] : [kill.target]},
+          killed: {...state.killed, [kill.target]: kill.by},
+          kills: [kill, ...state.kills]
         }))
       })
 

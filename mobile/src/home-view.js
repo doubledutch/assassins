@@ -35,6 +35,7 @@ export default class HomeView extends PureComponent {
     this.state = {
       players: [],
       targets: null,
+      kills: [],
       killsBy: {},
       killed: {},
       tab: 1
@@ -121,7 +122,7 @@ export default class HomeView extends PureComponent {
   }
 
   renderMain(me) {
-    const {killed, killsBy, players, tab} = this.state
+    const {killed, kills, killsBy, players, tab} = this.state
     players.sort((a,b) => {
       const score = (killed[b.id] ? 0 : 10000) - ([a.id] ? 0 : 10000)
         + (killsBy[b.id] || []).length - (killsBy[a.id] || []).length
@@ -171,7 +172,13 @@ export default class HomeView extends PureComponent {
             </View>
             : <View style={s.container}>
               <Header text="Mission Updates" />
-              <Text>TBD</Text>
+              <View style={s.section}>
+                { kills.length > 0
+                  ? this.renderMissionUpdate(kills[0])
+                  : <Text>No eliminations yet. Who will be the first?</Text>
+                }
+
+              </View>
               <Header text="Leaderboard" />
               <View style={[s.section, s.container]}>
                 <FlatList
@@ -198,6 +205,26 @@ export default class HomeView extends PureComponent {
           </TouchableOpacity>
         </View>
       </View>
+    )
+  }
+
+  renderMissionUpdate(kill) {
+    const renderPlayer = player => (<View style={{flex:1, alignItems: 'center'}}>
+        <Avatar size={50} user={player} client={client} />
+        <Text style={{fontSize:16, marginTop: 7, textAlign: 'center'}}>{player.firstName} {player.lastName}</Text>
+      </View>)
+
+    const {players} = this.state
+    const killer = players.find(u => u.id === kill.by)
+    const killed = players.find(u => u.id === kill.target)
+    return (
+      <Box style={[s.row, {justifyContent: 'space-between'}]}>
+        {renderPlayer(killer)}
+        <View>
+          <Text>Eliminated</Text>
+        </View>
+        {renderPlayer(killed)}
+        </Box>
     )
   }
 

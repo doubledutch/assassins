@@ -11,6 +11,7 @@ export default class Admin extends PureComponent {
     this.state = {
       players: [],
       targets: null,
+      kills: [],
       killsBy: {},
       killed: {}
     }
