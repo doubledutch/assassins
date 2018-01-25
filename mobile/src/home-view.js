@@ -294,32 +294,23 @@ export default class HomeView extends PureComponent {
           { this.state.killsBy[item.id] && <View style={s.row}>
               <Text>Eliminated:  </Text>
               { this.state.killsBy[item.id].map(id => <Avatar
-                style={s.killedAvatar} key={id}
-                user={this.state.players.find(u => u.id === id)}
-                size={20} client={client} />) }
+                  style={s.smallAvatar} key={id}
+                  user={this.state.players.find(u => u.id === id)}
+                  size={20} client={client} />)
+              }
+            </View>
+          }
+          { this.state.killed[item.id] && <View style={s.row}>
+              <Text>Eliminated by:  </Text>
+              <Avatar
+                style={s.smallAvatar}
+                user={this._whoAssassinated(item.id)}
+                size={20} client={client} />
             </View>
           }
         </View>
       </View>
     </Box>
-    // <View style={s.listPlayer}>
-    //   <View>
-    //     <Avatar user={item} size={60} client={client} />
-    //     { this.state.killed[item.id] && <View style={s.killedXContainer}><Text style={s.killedX}>❌</Text></View> }
-    //   </View>
-    //   <View style={s.listPlayerRight}>
-    //     <View style={s.listPlayerName}>
-    //       <Text style={s.listPlayerText}>{item.firstName} {item.lastName}</Text>
-    //     </View>
-    //     { this.state.killsBy[item.id] && (
-    //       <View style={s.kills}>
-    //         <Text style={s.killsIcon}>🎯</Text>
-    //         { this.state.killsBy[item.id].map(id => <Avatar style={s.killedAvatar} key={id} user={this.state.players.find(u => u.id === id)} size={Math.min(30, 240 / this.state.killsBy[item.id].length)} client={client} />) }
-    //       </View>)}
-    //     <View>
-    //     </View>
-    //   </View>
-    // </View>
   )
 
   _adminMarkAssassinated = player => {
@@ -348,6 +339,12 @@ export default class HomeView extends PureComponent {
     const assassinId = Object.keys(this.state.killsBy).find(id => this.state.killsBy[id].includes(client.currentUser.id))
     if (assassinId) return this.state.players.find(u => u.id === assassinId)
     return null
+  }
+
+  _whoAssassinated(playerId) {
+    const assassinId = Object.keys(this.state.killsBy).find(id => this.state.killsBy[id].includes(playerId))
+    if (assassinId) return this.state.players.find(u => u.id === assassinId)
+    return null    
   }
 
   _yourTarget() {
@@ -481,7 +478,7 @@ const s = ReactNative.StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center'
   },
-  killedAvatar: {
+  smallAvatar: {
     marginRight: 6
   },
   buttonText: {
