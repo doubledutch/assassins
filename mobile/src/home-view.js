@@ -141,8 +141,16 @@ export default class HomeView extends PureComponent {
           {
             tab === 0 && !isGameOverForMe ? <View style={s.container}>
               <Header text="Secret Code" />
-              <View></View>
-              <Text>TBD</Text>
+              <View style={[s.section, s.container]}>
+                <Text style={{fontSize: 16}}>If you are eliminated, the enemy agent will scan this secret code</Text>
+                <View style={s.qrcode}>
+                  <QRCode
+                    value={JSON.stringify(client.currentUser.id)}
+                    size={300}
+                    bgColor={colors.neon}
+                    fgColor={colors.gray} />
+                </View>
+              </View>
             </View>
             : tab === 1 && !isGameOverForMe ? <View style={s.container}>
               <Header text="Target Acquired" />
@@ -481,8 +489,9 @@ const s = ReactNative.StyleSheet.create({
     backgroundColor: client.primaryColor,
     justifyContent: 'center'
   },
-  tapToScan: {
+  qrcode: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center'
   },
   killMethod: {
