@@ -123,14 +123,7 @@ export default class HomeView extends PureComponent {
   }
 
   renderMain(me) {
-    const {killed, kills, killsBy, players, tab} = this.state
-    players.sort((a,b) => {
-      const score = (killed[b.id] ? 0 : 10000) - ([a.id] ? 0 : 10000)
-        + (killsBy[b.id] || []).length - (killsBy[a.id] || []).length
-      if (score !== 0) return score
-      if (a.lastName !== b.lastName) return a.lastName < b.lastName ? -1 : 1
-      return a.firstName < b.firstName ? -1 : 1
-    })
+    const {killed, kills, killsBy, tab} = this.state
 
     const whoAssassinatedMe = this._whoAssassinatedMe()
     const yourTarget = this._yourTarget()
@@ -182,11 +175,7 @@ export default class HomeView extends PureComponent {
               </View>
               <Header text="Leaderboard" />
               <View style={[s.section, s.container]}>
-                <FlatList
-                  data={players}
-                  extraData={kills}
-                  keyExtractor={this._keyExtractor}
-                  renderItem={this._renderListPlayer} />
+                { this.renderLeaderboard() }
               </View>
             </View>
           }
@@ -230,6 +219,23 @@ export default class HomeView extends PureComponent {
         {renderPlayer(killed)}
         </Box>
     )
+  }
+
+  renderLeaderboard() {
+    const {players, killed, kills, killsBy} = this.state
+    players.sort((a,b) => {
+      const score = (killed[b.id] ? 0 : 10000) - (killed[a.id] ? 0 : 10000)
+        + (killsBy[b.id] || []).length - (killsBy[a.id] || []).length
+      if (score !== 0) return score
+      if (a.lastName !== b.lastName) return a.lastName < b.lastName ? -1 : 1
+      return a.firstName < b.firstName ? -1 : 1
+    })
+
+    return (<FlatList
+      data={players}
+      extraData={kills}
+      keyExtractor={this._keyExtractor}
+      renderItem={this._renderListPlayer} />)
   }
 
   // renderMain_OLD() {    
