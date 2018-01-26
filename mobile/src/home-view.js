@@ -143,13 +143,13 @@ export default class HomeView extends PureComponent {
                     <Header text="Target Acquired" />
                     <View style={[s.section, s.container]}>
                       <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
-                        <Avatar size={150} user={yourTarget} client={client} />
+                        <Avatar size={140} user={yourTarget} client={client} />
                         <View>
                           <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{yourTarget.firstName} {yourTarget.lastName}</Text>
                           <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
                         </View>
                       </Box>
-                      <Box style={{marginVertical: 7, paddingVertical: 20, flexDirection: 'row', alignItems: 'center'}}>
+                      <Box style={{marginVertical: 7, paddingVertical: 15, flexDirection: 'row', alignItems: 'center'}}>
                         <Text style={{fontSize: 50, marginRight: 10}}>{killMethod.title}</Text>
                         <Text style={{flex:1, fontSize: 16}}>{killMethod.instructions}</Text>
                       </Box>
@@ -229,85 +229,6 @@ export default class HomeView extends PureComponent {
       keyExtractor={this._keyExtractor}
       renderItem={this._renderListPlayer} />)
   }
-
-  // renderMain_OLD() {    
-  //   const {killed, players, targets} = this.state
-  //   const me = players.find(u => u.id === client.currentUser.id)
-  //   const whoAssassinatedMe = this._whoAssassinatedMe()
-  //   const yourTarget = this._yourTarget()
-
-  //   if (targets) {
-  //     if (targets[client.currentUser.id]) {
-  //       if (whoAssassinatedMe) {
-  //         return (
-  //           <View>
-  //             <Text style={s.dead}>DEAD!</Text>
-  //             <Text style={s.centerText}>{whoAssassinatedMe.firstName} {whoAssassinatedMe.lastName} took you down{killed[whoAssassinatedMe.id] ? ' before also being eliminated' : ''}!</Text>
-  //             <View style={s.me}>
-  //               <View>
-  //                 <Avatar user={client.currentUser} size={100} client={client} />
-  //                 <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View>
-  //               </View>
-  //               <Text style={s.gun}>🔫</Text>
-  //               <View>
-  //                 <Avatar user={whoAssassinatedMe} size={100} client={client} />
-  //                 { killed[whoAssassinatedMe.id] && <View style={s.killedXContainer}><Text style={s.killedXBig}>❌</Text></View> }
-  //               </View>
-  //             </View>
-  //           </View>
-  //         )
-  //       } else if (Object.keys(killed).length >= Object.keys(this.state.targets).length - 1) {
-  //         return <View style={s.me}><Text style={[s.meText, s.centerText]}>🥇 You are the last assassin standing! 🥇</Text></View>
-  //       } else if (yourTarget) {
-  //         const killMethod = killMethods[+yourTarget.killMethod] || killMethods[0]
-  //         return (
-  //           <View>
-  //             <View style={s.me}>
-  //               <View style={s.scannerContainer}>
-  //                 { this.state.showScanner
-  //                   ? <QRCodeScanner
-  //                       onRead={this._onScan}
-  //                       cameraStyle={{height: 100, width: 100}}
-  //                       permissionDialogTitle="Camera Permission"
-  //                       permissionDialogMessage="Required to unlock your assassin skills" />
-  //                   : <TouchableOpacity onPress={this._showScanner} style={s.tapToScan}><Text style={[s.alignCenter, s.centerText]}>Tap to scan</Text></TouchableOpacity> }
-  //               </View>
-  //               <View style={s.alignCenter}>
-  //                 <Text style={s.centerText}>Your target:</Text>
-  //                 <Avatar user={yourTarget} size={100} client={client} />
-  //                 <Text style={s.centerText}>{yourTarget.firstName} {yourTarget.lastName}</Text>
-  //               </View>
-  //               <View style={s.alignCenter}>
-  //                 <Text style={s.centerText}>Secret code:</Text>
-  //                 <QRCode
-  //                   value={JSON.stringify(client.currentUser.id)}
-  //                   size={100}
-  //                   bgColor='black'
-  //                   fgColor='white' />
-  //                 <Text style={s.centerText}>Forfeit if killed</Text>
-  //               </View>
-  //             </View>
-  //             <View style={s.killMethod}>
-  //               <Text style={s.killMethodTitle}>Mission: {killMethod.title}</Text>
-  //               <Text>{killMethod.description}</Text>
-  //             </View>
-  //           </View>
-  //         )
-  //       }
-  //     } else {
-  //       return <View style={s.me}><Text style={s.centerText}>Sorry, you&#39;re too late. The game is already afoot!</Text></View>
-  //     }
-  //   } else if (this.state.isSignedIn) {
-  //     return (
-  //       <View>
-  //         <Text style={{padding: 5}}>Awaiting your first target...</Text>
-  //         <CrossHares size={200} />
-  //       </View>
-  //     )
-  //   }
-
-  //   return null
-  // }
 
   _toggleAdmin = () => {
     this.setState({isAdminExpanded: !this.state.isAdminExpanded})
@@ -422,7 +343,6 @@ const TabImage = props => (<Image
   source={{uri: `https://dml2n2dpleynv.cloudfront.net/extensions/espionage/${props.type}_${props.selected ? 'green' : 'white'}.png`}}
   style={s.tabImage} />)
 
-const fontSize = 18
 const s = ReactNative.StyleSheet.create({
   container: {
     flex: 1,
