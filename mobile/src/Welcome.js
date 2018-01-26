@@ -55,9 +55,9 @@ export default class Welcome extends PureComponent {
           <View style={s.killMethodsContainer}>
             <Text>Choose a method that enemy agents must use to eliminate you.</Text>
               <View style={s.killMethods}>
-                { killMethods.map(m => (
-                  <TouchableOpacity key={m.id} onPress={() => this._selectKillMethod(m.id)} style={s.killMethod}>
-                    <Box style={[s.killMethodBox, this.state.killMethod === m.id ? s.highlighted : null]}>
+                { killMethods.map((m,i) => (
+                  <TouchableOpacity key={i} onPress={() => this._selectKillMethod(i)} style={s.killMethod}>
+                    <Box style={[s.killMethodBox, this.state.killMethod === i ? s.highlighted : null]}>
                       <Text style={s.killMethodTitle}>{m.title}</Text>
                       <Text>{m.description}</Text>
                     </Box>
