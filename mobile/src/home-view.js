@@ -11,7 +11,7 @@ import Box from './Box'
 import Button from './Button'
 import CrossHairs from './CrossHairs'
 import Header from './Header'
-import Smiley from './Smiley'
+import Smiley, { SmileyRain } from './Smiley'
 import Text from './Text'
 import Welcome from './Welcome'
 import Database from './db'
@@ -113,8 +113,8 @@ export default class HomeView extends PureComponent {
     const whoAssassinatedMe = this._whoAssassinatedMe()
     const yourTarget = this._yourTarget()
     const killMethod = yourTarget ? killMethods[+yourTarget.killMethod] || killMethods[0] : null
-    const isGameOver = Object.keys(killed).length >= Object.keys(this.state.targets).length - 1
-    const isGameOverForMe = isGameOver || whoAssassinatedMe
+    const alive = this.state.players.filter(p => !killed[p.id])
+    const isGameOverForMe = alive.length < 1 || whoAssassinatedMe
     return (
       <View style={s.container}>
         <View style={s.container}>
@@ -132,7 +132,7 @@ export default class HomeView extends PureComponent {
                 </View>
               </View>
             </View>
-            : tab === 1 && !isGameOver
+            : tab === 1 && alive.length > 1
               ? whoAssassinatedMe
                 ? <View style={s.container}>
                     <Header text="Mission Failed" />
@@ -198,17 +198,34 @@ export default class HomeView extends PureComponent {
                         </View>
                       </View>
             : <View style={s.container}>
-                <Header text="Mission Updates" />
-                { kills.length > 0
-                  ? <FlatList style={[s.section, {flex: 0.6}]} data={kills} keyExtractor={this._killKeyExtractor} renderItem={this.renderMissionUpdate} />
-                  : <Text style={s.section}>No eliminations yet. Who will be the first?</Text>
+                { alive.length === 1
+                    ? <View>
+                        <Header text="Winner" />
+                        <View style={{alignItems: 'center'}}>
+                          <SmileyRain style={{opacity: 0.9}} />
+                          <Avatar size={100} user={alive[0]} client={client} style={{marginVertical:10}} />
+                          <Text style={{fontSize:20, marginBottom:10}}>{alive[0].firstName} {alive[0].lastName}</Text>
+                        </View>
+                      </View>
+                    : <View style={s.container}>
+                        <Header text="Mission Updates" />
+                        {
+                          kills.length > 0
+                            ? <FlatList
+                                style={[s.section, {flex:0.6}]}
+                                data={kills} keyExtractor={this._killKeyExtractor}
+                                renderItem={this.renderMissionUpdate} />
+                            : <Text style={s.section}>No eliminations yet. Who will be the first?</Text>
+                        }
+                      </View>
                 }
+                
                 <Header text="Leaderboard" />
                 { this.renderLeaderboard() }
               </View>
           }
         </View>
-        { !isGameOver && <View style={s.tabs}>
+        { alive.length > 1 && <View style={s.tabs}>
             { !isGameOverForMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:0})}>
                 <TabImage type="secret_code" selected={tab===0} />
                 <Text style={[s.tabText, tab===0 ? {color:colors.neon} : null]}>Secret Code</Text>
