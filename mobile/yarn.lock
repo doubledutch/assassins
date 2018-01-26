@@ -13,9 +13,9 @@
     babel-runtime "^6.26.0"
     firebase "^4.6.0"
 
-"@doubledutch/rn-client@^3.0.4":
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/@doubledutch/rn-client/-/rn-client-3.0.4.tgz#827a9000e2b569bbc3152d092f3853613227b13c"
+"@doubledutch/rn-client@^3.0.6":
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/@doubledutch/rn-client/-/rn-client-3.0.6.tgz#51a770645fdb4cc044446c93a33d8fb6fe813a47"
   dependencies:
     "@doubledutch/base-client" "^3.0.0"
     react "~16.0.0-alpha.12"

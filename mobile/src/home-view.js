@@ -108,7 +108,7 @@ export default class HomeView extends PureComponent {
   }
 
   renderMain(me) {
-    const {killed, kills, killsBy, tab} = this.state
+    const {killed, kills, killsBy, showScanner, tab} = this.state
 
     const whoAssassinatedMe = this._whoAssassinatedMe()
     const yourTarget = this._yourTarget()
@@ -132,23 +132,30 @@ export default class HomeView extends PureComponent {
                 </View>
               </View>
             </View>
-            : tab === 1 && !isGameOverForMe ? <View style={s.container}>
-              <Header text="Target Acquired" />
-              <View style={[s.section, s.container]}>
-                <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
-                  <Avatar size={150} user={yourTarget} client={client} />
-                  <View>
-                    <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{yourTarget.firstName} {yourTarget.lastName}</Text>
-                    <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
+            : tab === 1 && !isGameOverForMe
+              ? showScanner
+                ? client._b.isEmulated ? <Button text="No scanner in emulator. Tap to continue." onPress={this._onScan} /> : <QRCodeScanner
+                    onRead={this._onScan}
+                    //cameraStyle={{height: 100, width: 100}}
+                    permissionDialogTitle="Camera Permission"
+                    permissionDialogMessage="Required to eliminate your target" />
+                : <View style={s.container}>
+                    <Header text="Target Acquired" />
+                    <View style={[s.section, s.container]}>
+                      <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
+                        <Avatar size={150} user={yourTarget} client={client} />
+                        <View>
+                          <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{yourTarget.firstName} {yourTarget.lastName}</Text>
+                          <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
+                        </View>
+                      </Box>
+                      <Box style={{marginVertical: 7, paddingVertical: 20, flexDirection: 'row', alignItems: 'center'}}>
+                        <Text style={{fontSize: 50, marginRight: 10}}>{killMethod.title}</Text>
+                        <Text style={{flex:1, fontSize: 16}}>{killMethod.instructions}</Text>
+                      </Box>
+                      <Button text="CONFIRM MISSION COMPLETE" onPress={this._showScanner}><TabImage type="secret_code" selected={true} /></Button>
+                    </View>
                   </View>
-                </Box>
-                <Box style={{marginVertical: 7, paddingVertical: 20, flexDirection: 'row', alignItems: 'center'}}>
-                  <Text style={{fontSize: 50, marginRight: 10}}>{killMethod.title}</Text>
-                  <Text style={{flex:1, fontSize: 16}}>{killMethod.instructions}</Text>
-                </Box>
-                <Button text="CONFIRM MISSION COMPLETE"><TabImage type="secret_code" selected={true} /></Button>
-              </View>
-            </View>
             : <View style={s.container}>
               <Header text="Mission Updates" />
               <View style={[s.section, {flex: 0.6}]}>
@@ -381,13 +388,19 @@ export default class HomeView extends PureComponent {
   
   _onScan = code => {
     this.setState({showScanner: false})
-    const scannedUserId = JSON.parse(code.data)
-    const yourTarget = this._yourTarget()
-    if (yourTarget && yourTarget.id === scannedUserId) {
-      this._markAssassinated(yourTarget, client.currentUser.id)
-      Alert.alert('Hit!', 'Good job, and watch your back!')
-    } else {
-      Alert.alert('Careful!', 'A case of mistaken identity? Don\'t whack the wrong person!')
+    if (code) {
+      try {
+        const scannedUserId = JSON.parse(code.data)
+        const yourTarget = this._yourTarget()
+        if (yourTarget && yourTarget.id === scannedUserId) {
+          this._markAssassinated(yourTarget, client.currentUser.id)
+          Alert.alert('Success!', 'Good job, and watch your back!')
+        } else {
+          Alert.alert('Careful!', 'A case of mistaken identity? Don\'t target the wrong person!')
+        }
+      } catch (e) {
+        // Bad code
+      }
     }
   }
 
