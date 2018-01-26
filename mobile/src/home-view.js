@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import ReactNative, {
-  Alert, FlatList, Image, PermissionsAndroid, TouchableOpacity, TextInput, View
+  Alert, FlatList, Image, PermissionsAndroid, ScrollView, TouchableOpacity, TextInput, View
 } from 'react-native'
 
 import QRCode from 'react-native-qrcode'
@@ -132,83 +132,114 @@ export default class HomeView extends PureComponent {
                 </View>
               </View>
             </View>
-            : tab === 1 && !isGameOverForMe
-              ? showScanner
-                ? client._b.isEmulated ? <Button text="No scanner in emulator. Tap to continue." onPress={this._onScan} /> : <QRCodeScanner
-                    onRead={this._onScan}
-                    permissionDialogTitle="Camera Permission"
-                    permissionDialogMessage="Required to eliminate your target" />
-                : justKilled
-                  ? <View style={s.container}>
-                      <Header text="Mission Accomplished" />
-                      <View style={[s.container, s.section]}>
-                        <View style={s.container}>
-                          <Box>
-                            <Text style={{fontSize:18, marginBottom:15}}>You eliminated:</Text>
-                            <View style={{flexDirection: 'row'}}>
-                              <Avatar size={60} user={justKilled} client={client} style={{marginRight:7}} />
-                              <View style={{flex:1, justifyContent: 'space-around'}}>
-                                <Text style={{fontSize:18}}>{justKilled.firstName} {justKilled.lastName}</Text>
-                                <Text>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
-                              </View>
+            : tab === 1 && !isGameOver
+              ? whoAssassinatedMe
+                ? <View style={s.container}>
+                    <Header text="Mission Failed" />
+                      <View style={s.section}>
+                        <Box>
+                          <Text style={{fontSize:18, marginBottom:15}}>You were eliminated by:</Text>
+                          { this.renderDebriefForPlayer(whoAssassinatedMe, 60) }
+                        </Box>
+                      </View>
+                    { (killsBy[client.currentUser.id] ||[]).length > 0 && <View style={s.container}>
+                        <Header text="Mission Debrief" />
+                        <ScrollView style={s.container}>
+                          <View style={s.section}>
+                            <Box>
+                              <Text style={{marginBottom:10}}>You eliminated:</Text>
+                              { killsBy[client.currentUser.id].map(id => this.renderDebriefForPlayer(this.state.players.find(p => p.id===id), 40)) }
+                              <Text style={{marginBottom:10, marginTop:20}}>You were eliminated by:</Text>
+                              { this.renderDebriefForPlayer(whoAssassinatedMe, 40) }
+                            </Box>
+                          </View>
+                        </ScrollView>
+                      </View> }
+                  </View>
+                : showScanner
+                  ? <View>
+                      { client._b.isEmulated
+                          ? <Text>No scanner in emulator</Text>
+                          : <QRCodeScanner
+                              onRead={this._onScan}
+                              permissionDialogTitle="Camera Permission"
+                              permissionDialogMessage="Required to eliminate your target" />
+                      }
+                      <Button text="CANCEL" onPress={() => this.setState({showScanner:false})} />
+                    </View>
+                  : justKilled
+                    ? <View style={s.container}>
+                        <Header text="Mission Accomplished" />
+                        <View style={[s.container, s.section]}>
+                          <View style={s.container}>
+                            <Box>
+                              <Text style={{fontSize:18, marginBottom:15}}>You eliminated:</Text>
+                              { this.renderDebriefForPlayer(justKilled, 60) }
+                            </Box>
+                          </View>
+                          <Button text="NEXT MISSION" onPress={() => this.setState({justKilled: null})} />
+                        </View>
+                      </View>
+                    : <View style={s.container}>
+                        <Header text="Target Acquired" />
+                        <View style={[s.section, s.container]}>
+                          <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
+                            <Avatar size={140} user={yourTarget} client={client} />
+                            <View>
+                              <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{yourTarget.firstName} {yourTarget.lastName}</Text>
+                              <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
                             </View>
                           </Box>
+                          <Box style={{marginVertical: 7, paddingVertical: 15, flexDirection: 'row', alignItems: 'center'}}>
+                            <Text style={{fontSize: 50, marginRight: 10}}>{killMethod.title}</Text>
+                            <Text style={{flex:1, fontSize: 16}}>{killMethod.instructions}</Text>
+                          </Box>
+                          <Button text="CONFIRM MISSION COMPLETE" onPress={this._showScanner}><TabImage type="secret_code" selected={true} /></Button>
                         </View>
-                        <Button text="NEXT MISSION" onPress={() => this.setState({justKilled: null})} />
                       </View>
-                    </View>
-                  : <View style={s.container}>
-                      <Header text="Target Acquired" />
-                      <View style={[s.section, s.container]}>
-                        <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
-                          <Avatar size={140} user={yourTarget} client={client} />
-                          <View>
-                            <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{yourTarget.firstName} {yourTarget.lastName}</Text>
-                            <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
-                          </View>
-                        </Box>
-                        <Box style={{marginVertical: 7, paddingVertical: 15, flexDirection: 'row', alignItems: 'center'}}>
-                          <Text style={{fontSize: 50, marginRight: 10}}>{killMethod.title}</Text>
-                          <Text style={{flex:1, fontSize: 16}}>{killMethod.instructions}</Text>
-                        </Box>
-                        <Button text="CONFIRM MISSION COMPLETE" onPress={this._showScanner}><TabImage type="secret_code" selected={true} /></Button>
-                      </View>
-                    </View>
             : <View style={s.container}>
-              <Header text="Mission Updates" />
-              <View style={[s.section, {flex: 0.6}]}>
+                <Header text="Mission Updates" />
                 { kills.length > 0
-                  ? <FlatList data={kills} keyExtractor={this._killKeyExtractor} renderItem={this.renderMissionUpdate} />
-                  : <Text>No eliminations yet. Who will be the first?</Text>
+                  ? <FlatList style={[s.section, {flex: 0.6}]} data={kills} keyExtractor={this._killKeyExtractor} renderItem={this.renderMissionUpdate} />
+                  : <Text style={s.section}>No eliminations yet. Who will be the first?</Text>
                 }
-
-              </View>
-              <Header text="Leaderboard" />
-              <View style={[s.section, s.container]}>
+                <Header text="Leaderboard" />
                 { this.renderLeaderboard() }
               </View>
-            </View>
           }
         </View>
-        <View style={s.tabs}>
-          { !isGameOverForMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:0})}>
-              <TabImage type="secret_code" selected={tab===0} />
-              <Text style={[s.tabText, tab===0 ? {color:colors.neon} : null]}>Secret Code</Text>
-            </TouchableOpacity> }
-          { !isGameOverForMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:1})}>
-              <CrossHairs size={20} color={tab===1 ? colors.neon : 'white'} />
-              <Text style={[s.tabText, tab===1 ? {color:colors.neon} : null]}>Current Target</Text>
-            </TouchableOpacity> }
-          <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:2})}>
-            <TabImage type="trophy" selected={tab===2} />
-            <Text style={[s.tabText, tab===2 ? {color:colors.neon} : null]}>Leaderboard</Text>
-          </TouchableOpacity>
-        </View>
+        { !isGameOver && <View style={s.tabs}>
+            { !isGameOverForMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:0})}>
+                <TabImage type="secret_code" selected={tab===0} />
+                <Text style={[s.tabText, tab===0 ? {color:colors.neon} : null]}>Secret Code</Text>
+              </TouchableOpacity> }
+            <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:1})}>
+                <CrossHairs size={20} color={tab===1 ? colors.neon : 'white'} />
+                <Text style={[s.tabText, tab===1 ? {color:colors.neon} : null]}>Current Target</Text>
+              </TouchableOpacity>
+            <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:2})}>
+              <TabImage type="trophy" selected={tab===2} />
+              <Text style={[s.tabText, tab===2 ? {color:colors.neon} : null]}>Leaderboard</Text>
+            </TouchableOpacity>
+          </View>
+        }
       </View>
     )
   }
 
   _killKeyExtractor = kill => `${kill.by}:${kill.target}`
+
+  renderDebriefForPlayer(player, avatarSize) {
+    return (
+      <View key={player.id} style={{flexDirection: 'row'}}>
+        <Avatar size={avatarSize} user={player} client={client} style={{marginRight:7}} />
+        <View style={{flex:1, justifyContent: 'space-around'}}>
+          <Text style={{fontSize:18}}>{player.firstName} {player.lastName}</Text>
+          <Text>{player.title}{player.title && player.company ? ', ' : ''}{player.company}</Text>
+        </View>
+      </View>
+    )
+  }
 
   renderMissionUpdate = ({item}) => {
     const renderPlayer = player => (<View style={{flex:1, alignItems: 'center', justifyContent: 'center'}}>
@@ -220,14 +251,14 @@ export default class HomeView extends PureComponent {
     const killer = players.find(u => u.id === item.by)
     const killed = players.find(u => u.id === item.target)
     return (
-      <Box style={{flexDirection: 'row'}}>
+      <Box style={{flexDirection: 'row', marginBottom: 5}}>
         {renderPlayer(killer)}
         <View style={{flex: 0.7, alignItems: 'center', justifyContent: 'space-around', paddingVertical: 5}}>
           <Smiley size={30} />
           <Text>Eliminated</Text>
         </View>
         {renderPlayer(killed)}
-        </Box>
+      </Box>
     )
   }
 
@@ -242,6 +273,7 @@ export default class HomeView extends PureComponent {
     })
 
     return (<FlatList
+      style={[s.section, s.container]}
       data={players}
       extraData={kills}
       keyExtractor={this._keyExtractor}
@@ -387,7 +419,8 @@ const s = ReactNative.StyleSheet.create({
   },
   section: {
     padding: 7,
-    paddingTop: 13
+    paddingTop: 13,
+    paddingBottom: 18
   },
   centerChildren: {
     flex: 1,

@@ -15,7 +15,7 @@ export default class CrossHairs extends Component {
     this.rotation.setValue(0)
     Animated.timing(this.rotation, {
       toValue: 1,
-      duration: 10000,
+      duration: 15000,
       useNativeDriver: true,
       easing: Easing.linear
     }).start(() => this.startRotation())

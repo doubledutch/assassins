@@ -11,7 +11,7 @@ export default props => (
 const s = StyleSheet.create({
   selectTitle: {
     padding: 10,
-    backgroundColor: 'rgba(255,255,255,0.1)'
+    backgroundColor: 'rgba(255,255,255,0.15)'
   },
   selectTitleText: {
     fontSize: 18
