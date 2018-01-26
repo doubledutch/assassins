@@ -108,7 +108,7 @@ export default class HomeView extends PureComponent {
   }
 
   renderMain(me) {
-    const {killed, kills, killsBy, showScanner, tab} = this.state
+    const {justKilled, killed, kills, killsBy, showScanner, tab} = this.state
 
     const whoAssassinatedMe = this._whoAssassinatedMe()
     const yourTarget = this._yourTarget()
@@ -136,26 +136,44 @@ export default class HomeView extends PureComponent {
               ? showScanner
                 ? client._b.isEmulated ? <Button text="No scanner in emulator. Tap to continue." onPress={this._onScan} /> : <QRCodeScanner
                     onRead={this._onScan}
-                    //cameraStyle={{height: 100, width: 100}}
                     permissionDialogTitle="Camera Permission"
                     permissionDialogMessage="Required to eliminate your target" />
-                : <View style={s.container}>
-                    <Header text="Target Acquired" />
-                    <View style={[s.section, s.container]}>
-                      <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
-                        <Avatar size={140} user={yourTarget} client={client} />
-                        <View>
-                          <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{yourTarget.firstName} {yourTarget.lastName}</Text>
-                          <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
+                : justKilled
+                  ? <View style={s.container}>
+                      <Header text="Mission Accomplished" />
+                      <View style={[s.container, s.section]}>
+                        <View style={s.container}>
+                          <Box>
+                            <Text style={{fontSize:18, marginBottom:15}}>You eliminated:</Text>
+                            <View style={{flexDirection: 'row'}}>
+                              <Avatar size={60} user={justKilled} client={client} style={{marginRight:7}} />
+                              <View style={{flex:1, justifyContent: 'space-around'}}>
+                                <Text style={{fontSize:18}}>{justKilled.firstName} {justKilled.lastName}</Text>
+                                <Text>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
+                              </View>
+                            </View>
+                          </Box>
                         </View>
-                      </Box>
-                      <Box style={{marginVertical: 7, paddingVertical: 15, flexDirection: 'row', alignItems: 'center'}}>
-                        <Text style={{fontSize: 50, marginRight: 10}}>{killMethod.title}</Text>
-                        <Text style={{flex:1, fontSize: 16}}>{killMethod.instructions}</Text>
-                      </Box>
-                      <Button text="CONFIRM MISSION COMPLETE" onPress={this._showScanner}><TabImage type="secret_code" selected={true} /></Button>
+                        <Button text="NEXT MISSION" onPress={() => this.setState({justKilled: null})} />
+                      </View>
                     </View>
-                  </View>
+                  : <View style={s.container}>
+                      <Header text="Target Acquired" />
+                      <View style={[s.section, s.container]}>
+                        <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
+                          <Avatar size={140} user={yourTarget} client={client} />
+                          <View>
+                            <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{yourTarget.firstName} {yourTarget.lastName}</Text>
+                            <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
+                          </View>
+                        </Box>
+                        <Box style={{marginVertical: 7, paddingVertical: 15, flexDirection: 'row', alignItems: 'center'}}>
+                          <Text style={{fontSize: 50, marginRight: 10}}>{killMethod.title}</Text>
+                          <Text style={{flex:1, fontSize: 16}}>{killMethod.instructions}</Text>
+                        </Box>
+                        <Button text="CONFIRM MISSION COMPLETE" onPress={this._showScanner}><TabImage type="secret_code" selected={true} /></Button>
+                      </View>
+                    </View>
             : <View style={s.container}>
               <Header text="Mission Updates" />
               <View style={[s.section, {flex: 0.6}]}>
@@ -315,6 +333,7 @@ export default class HomeView extends PureComponent {
         const yourTarget = this._yourTarget()
         if (yourTarget && yourTarget.id === scannedUserId) {
           this._markAssassinated(yourTarget, client.currentUser.id)
+          this.setState({justKilled: yourTarget})
           Alert.alert('Success!', 'Good job, and watch your back!')
         } else {
           Alert.alert('Careful!', 'A case of mistaken identity? Don\'t target the wrong person!')
@@ -367,7 +386,8 @@ const s = ReactNative.StyleSheet.create({
     fontSize: 13
   },
   section: {
-    padding: 7
+    padding: 7,
+    paddingTop: 13
   },
   centerChildren: {
     flex: 1,

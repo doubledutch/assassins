@@ -19,7 +19,8 @@ export default class Box extends PureComponent {
 
 const s = StyleSheet.create({
   container: {
-    padding: 7,
+    paddingHorizontal: 8,
+    paddingVertical: 12,
     borderRadius: 5,
     borderColor: 'rgba(0,0,0, 0.25)',
     borderBottomWidth: 2,
