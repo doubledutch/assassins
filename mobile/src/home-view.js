@@ -47,7 +47,7 @@ export default class HomeView extends PureComponent {
 
   componentDidMount() {
     this.signin.then(() => {
-      db.database.private.adminableUserRef('adminToken').once('value', async data => {
+      db.database.private.adminableUserRef('adminToken').on('value', async data => {
         const longLivedToken = data.val()
         if (longLivedToken) {
           console.log('Attendee appears to be admin.  Logging out and logging in w/ admin token.')

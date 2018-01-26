@@ -13,6 +13,7 @@ export default class App extends Component {
 
     this.state = {
       players: [],
+      admins: [],
       isGameInProgress: true // Assume game is in progress until we find out otherwise.
     }
   }
@@ -20,11 +21,11 @@ export default class App extends Component {
   componentDidMount() {
     fbc.signinAdmin()
     .then(() => {
-      client.getUsers().then(attendees => this.setState({attendees}))
+      client.getUsers().then(attendees => this.setState({attendees: attendees.sort(sortPlayers)}))
 
       const usersRef = fbc.database.public.usersRef()
       usersRef.on('child_added', data => {
-        this.setState(state => ({players: [...state.players, {...data.val(), id: data.key}]}))
+        this.setState(state => ({players: [...state.players, {...data.val(), id: data.key}].sort(sortPlayers)}))
       })
       usersRef.on('child_removed', data => {
         this.setState(state => ({players: state.players.filter(p => p.id !== data.key)}))
@@ -32,6 +33,11 @@ export default class App extends Component {
 
       fbc.database.public.adminRef('targets').on('value', data => {
         this.setState({isGameInProgress: !!data.val()})
+      })
+
+      fbc.database.private.adminableUsersRef().on('value', data => {
+        const users = data.val() || {}
+        this.setState({admins: Object.keys(users).filter(id => users[id].adminToken)})
       })
     })
   }
@@ -45,8 +51,8 @@ export default class App extends Component {
         { attendees
           ? <div>
               { isGameInProgress
-                ? <div className="gameState">Game is in progress</div>
-                : <div className="gameState">No game in progress</div>
+                ? <div className="gameState">Game is in progress <button onClick={this.abortGame}>Abort</button></div>
+                : <div className="gameState">No game in progress (Attendees marked as game admin can start a game)</div>
               }
               <div className="userListContainer">
                 <h4>Non-player Attendees ({nonPlayers.length})</h4>
@@ -77,8 +83,26 @@ export default class App extends Component {
         { !this.state.isGameInProgress && <button className="move" onClick={() => action(user)}>{actionText}</button> }
         <Avatar user={user} size={30} />
         <span> {firstName} {lastName}</span>
+        { this.isAdmin(id)
+            ? <button className="is admin" onClick={()=>this.setAdmin(id, false)}>Remove admin</button>
+            : <button className="admin" onClick={()=>this.setAdmin(id, true)}>Make admin</button>
+        }
       </li>
     )
+  }
+
+  isAdmin(id) {
+    return this.state.admins.includes(id)
+  }
+
+  setAdmin(userId, isAdmin) {
+    const tokenRef = fbc.database.private.adminableUsersRef(userId).child('adminToken')
+    if (isAdmin) {
+      this.setState()
+      fbc.getLongLivedAdminToken().then(token => tokenRef.set(token))
+    } else {
+      tokenRef.remove()
+    }
   }
 
   addPlayer(user) {
@@ -88,4 +112,18 @@ export default class App extends Component {
   removePlayer(user) {
     fbc.database.public.usersRef(user.id).remove()
   }
+
+  abortGame = () => {
+    if (window.confirm(`Are you sure you want to abort this game with ${this.state.players.length} players?`)) {
+      const killsRef = fbc.database.public.allRef('kills')
+      const targetsRef = fbc.database.public.adminRef('targets')
+      killsRef.remove()
+      targetsRef.remove()
+    }
+  }
+}
+
+function sortPlayers(a,b) {
+  if (a.lastName !== b.lastName) return a.lastName < b.lastName ? -1 : 1
+  return a.firstName < b.firstName ? -1 : 1
 }
