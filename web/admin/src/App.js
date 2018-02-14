@@ -55,13 +55,13 @@ export default class App extends Component {
                 : <div className="gameState">No game in progress (Attendees marked as game admin can start a game)</div>
               }
               <div className="userListContainer">
-                <h4>Non-player Attendees ({nonPlayers.length}) <button disabled={!nonPlayers || !nonPlayers.length} onClick={this.addAllPlayers}>Add ALL &gt;&gt;</button></h4>
+                <h4>Non-player Attendees ({nonPlayers.length}) <button disabled={isGameInProgress || !nonPlayers || !nonPlayers.length} onClick={this.addAllPlayers}>Add ALL &gt;&gt;</button></h4>
                 <ul className="userList">
                   { nonPlayers.map(user => this.renderUser(user, false)) }
                 </ul>
               </div>
               <div className="userListContainer">
-                <h4>Players ({players.length}) <button disabled={!players.length} onClick={this.removeAllPlayers}>&lt;&lt; Remove ALL</button></h4>
+                <h4>Players ({players.length}) <button disabled={isGameInProgress || !players.length} onClick={this.removeAllPlayers}>&lt;&lt; Remove ALL</button></h4>
                 <ul className="userList">
                 { players.map(user => this.renderUser(user, true)) }
               </ul>
