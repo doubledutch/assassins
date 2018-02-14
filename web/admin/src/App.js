@@ -55,13 +55,13 @@ export default class App extends Component {
                 : <div className="gameState">No game in progress (Attendees marked as game admin can start a game)</div>
               }
               <div className="userListContainer">
-                <h4>Non-player Attendees ({nonPlayers.length})</h4>
+                <h4>Non-player Attendees ({nonPlayers.length}) <button disabled={!nonPlayers || !nonPlayers.length} onClick={this.addAllPlayers}>Add ALL &gt;&gt;</button></h4>
                 <ul className="userList">
                   { nonPlayers.map(user => this.renderUser(user, false)) }
                 </ul>
               </div>
               <div className="userListContainer">
-                <h4>Players ({players.length})</h4>
+                <h4>Players ({players.length}) <button disabled={!players.length} onClick={this.removeAllPlayers}>&lt;&lt; Remove ALL</button></h4>
                 <ul className="userList">
                 { players.map(user => this.renderUser(user, true)) }
               </ul>
@@ -108,11 +108,22 @@ export default class App extends Component {
   addPlayer(user) {
     fbc.database.public.usersRef(user.id).set(user)
   }
+  addAllPlayers = () => {
+    const {attendees} = this.state
+    if (window.confirm(`Are you sure you want to add all ${attendees.length} attendees as players?`)) {
+      attendees.forEach(this.addPlayer)
+    }
+  }
 
   removePlayer(user) {
     fbc.database.public.usersRef(user.id).remove()
   }
-
+  removeAllPlayers = () => {
+    const {players} = this.state
+    if (window.confirm(`Are you sure you want to remove all ${players.length} players?`)) {
+      players.forEach(this.removePlayer)
+    }
+  }
   abortGame = () => {
     if (window.confirm(`Are you sure you want to abort this game with ${this.state.players.length} players?`)) {
       const killsRef = fbc.database.public.allRef('kills')
