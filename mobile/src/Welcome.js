@@ -21,7 +21,7 @@ export default class Welcome extends PureComponent {
   constructor() {
     super()
     this.state = {
-      showHelp: false, //true,
+      showHelp: true,
       canAccept: false
     }
   }
@@ -51,7 +51,7 @@ export default class Welcome extends PureComponent {
     return (
       <View style={s.buttonBottomContainer}>
         <View>
-          <Header text="Select Your Method" />
+          <Header text="Select Elimination Method" />
           <View style={s.killMethodsContainer}>
             <Text>Choose a method that enemy agents must use to eliminate you.</Text>
               <View style={s.killMethods}>
@@ -59,7 +59,7 @@ export default class Welcome extends PureComponent {
                   <TouchableOpacity key={i} onPress={() => this._selectKillMethod(i)} style={s.killMethod}>
                     <Box style={[s.killMethodBox, this.state.killMethod === i ? s.highlighted : null]}>
                       <Text style={s.killMethodTitle}>{m.title}</Text>
-                      <Text>{m.description}</Text>
+                      <Text style={s.killdes}>{m.description}</Text>
                     </Box>
                   </TouchableOpacity>
                 )) }
@@ -107,6 +107,10 @@ const s = StyleSheet.create({
     textAlign: 'center',
     paddingBottom: 5
   },
+  killdes: {
+    padding: 0,
+    marginBottom: 10,
+  },
   killMethodsContainer: {
     padding: 7
   },
@@ -118,12 +122,12 @@ const s = StyleSheet.create({
   },
   killMethod: {
     paddingTop: 10,
-    width: '49%'
+    width: '49%',
   },
   highlighted: {
     backgroundColor: 'rgba(255,255,255,0.2)'
   },
   killMethodBox: {
-    height: 175
+    
   }
 })
