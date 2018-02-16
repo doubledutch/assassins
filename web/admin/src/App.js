@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import './App.css'
-
 import client from '@doubledutch/admin-client'
 import Avatar from './Avatar'
 import FirebaseConnector from '@doubledutch/firebase-connector'
@@ -21,11 +20,11 @@ export default class App extends Component {
   componentDidMount() {
     fbc.signinAdmin()
     .then(() => {
-      client.getUsers().then(attendees => {this.setState({attendees: attendees.sort(sortPlayers)}) 
-
+      client.getUsers().then(attendees => {
+        this.setState({attendees: attendees.sort(sortPlayers)}) 
         const usersRef = fbc.database.public.usersRef()
         usersRef.on('child_added', data => {
-          var player = attendees.find(newUser => newUser.id === data.val().id)
+          var player = attendees.find(a => a.id === data.key)
           if (player){
             this.setState(state => ({players: [...state.players, {...data.val(), id: data.key}].sort(sortPlayers)}))
           }
