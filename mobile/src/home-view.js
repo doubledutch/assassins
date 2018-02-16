@@ -159,11 +159,13 @@ export default class HomeView extends PureComponent {
                 : showScanner
                   ? <View>
                       { client._b.isEmulated
-                          ? <Text>No scanner in emulator</Text>
-                          : <QRCodeScanner
-                              onRead={this._onScan}
-                              permissionDialogTitle="Camera Permission"
-                              permissionDialogMessage="Required to eliminate your target" />
+                        ? <Text>No scanner in emulator</Text>
+                        :
+                          <QRCodeScanner
+                            onRead={this._onScan}
+                            permissionDialogTitle="Camera Permission"
+                            permissionDialogMessage="Required to eliminate your target" 
+                          />         
                       }
                       <Button text="CANCEL" onPress={() => this.setState({showScanner:false})} />
                     </View>
@@ -184,7 +186,7 @@ export default class HomeView extends PureComponent {
                         <Header text="Target Acquired" />
                         <View style={[s.section, s.container]}>
                           <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
-                            <Avatar size={140} user={yourTarget} client={client} />
+                            <Avatar size={100} user={yourTarget} client={client} />
                             <View>
                               <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{yourTarget.firstName} {yourTarget.lastName}</Text>
                               <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
@@ -241,6 +243,7 @@ export default class HomeView extends PureComponent {
           </View>
         }
       </View>
+      
     )
   }
 
