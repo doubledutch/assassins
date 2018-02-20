@@ -110,8 +110,10 @@ export default class App extends Component {
     fbc.database.public.usersRef(user.id).set(user)
   }
   addAllPlayers = () => {
-    const {attendees} = this.state
-    if (window.confirm(`Are you sure you want to add all ${attendees.length} attendees as players?`)) {
+    const {attendees, players} = this.state
+    const playersById = players.reduce((players, player) => { players[player.id] = player; return players; }, {})
+    const nonPlayers = attendees ? attendees.filter(a => !playersById[a.id]) : null
+    if (window.confirm(`Are you sure you want to add all ${nonPlayers.length} attendees as players?`)) {
       attendees.forEach(this.addPlayer)
     }
   }
