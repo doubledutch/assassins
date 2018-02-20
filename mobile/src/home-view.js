@@ -108,18 +108,23 @@ export default class HomeView extends PureComponent {
   }
 
   renderMain(me) {
-    const {justKilled, killed, kills, killsBy, showScanner, tab} = this.state
+    const {justKilled, killed, kills, killsBy, showScanner} = this.state
+    let {tab} = this.state
 
     const whoAssassinatedMe = this._whoAssassinatedMe()
     const yourTarget = this._yourTarget()
     const killMethod = yourTarget ? killMethods[+yourTarget.killMethod] || killMethods[0] : null
     const alive = this.state.players.filter(p => !killed[p.id])
     const isGameOverForMe = alive.length < 1 || whoAssassinatedMe
+
+    if (tab === 0 && isGameOverForMe) tab = 1
+    if (alive.length <= 1) tab = 2
+
     return (
       <View style={s.container}>
         <View style={s.container}>
           {
-            tab === 0 && !isGameOverForMe ? <View style={s.container}>
+            tab === 0 ? <View style={s.container}>
               <Header text="Secret Code" />
               <View style={[s.section, s.container]}>
                 <Text style={{fontSize: 16}}>If you are eliminated, the enemy agent will scan this secret code</Text>
@@ -132,7 +137,7 @@ export default class HomeView extends PureComponent {
                 </View>
               </View>
             </View>
-            : tab === 1 && alive.length > 1
+            : tab === 1
               ? whoAssassinatedMe
                 ? <View style={s.container}>
                     <Header text="Mission Failed" />
