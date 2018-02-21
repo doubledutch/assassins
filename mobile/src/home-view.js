@@ -24,9 +24,9 @@ const fbc = FirebaseConnector(client, 'assassins')
 const db = Database(fbc)
 
 const killMethods = [
-  {title: '📇', description: 'You accept a business card from the enemy agent', instructions: 'Hand your business card to the target'},
-  {title: '😄', description: 'The enemy agent places a sticker on you without you knowing', instructions: 'Place a sticker on the target without them knowing'},
-  {title: '📸', description: 'The enemy agent takes a photo with you and him/herself', instructions: 'Take a photo with yourself and the target'}
+  {title: '📇', description: 'You accept a business card from the target agent', instructions: 'Hand your business card to the target'},
+  {title: '😄', description: 'The target agent places a sticker on you without you knowing', instructions: 'Place a sticker on the target without them knowing'},
+  {title: '📸', description: 'The target agent takes a photo with you and him/herself', instructions: 'Take a photo with yourself and the target'}
 ]
 
 export default class HomeView extends PureComponent {
@@ -127,7 +127,7 @@ export default class HomeView extends PureComponent {
             tab === 0 ? <View style={s.container}>
               <Header text="Secret Code" />
               <View style={[s.section, s.container]}>
-                <Text style={{fontSize: 16}}>If you are eliminated, the enemy agent will scan this secret code</Text>
+                <Text style={{fontSize: 16}}>If you are eliminated, the target agent will scan this secret code</Text>
                 <View style={s.qrcode}>
                   <QRCode
                     value={JSON.stringify(client.currentUser.id)}
@@ -273,6 +273,7 @@ export default class HomeView extends PureComponent {
     const {players} = this.state
     const killer = players.find(u => u.id === item.by)
     const killed = players.find(u => u.id === item.target)
+    console.log(killed)
     return (
       <Box style={{flexDirection: 'row', marginBottom: 5}}>
         {renderPlayer(killer)}
