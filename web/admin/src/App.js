@@ -21,12 +21,15 @@ export default class App extends Component {
     fbc.signinAdmin()
     .then(() => {
       client.getUsers().then(attendees => {
-        this.setState({attendees: attendees.sort(sortPlayers)}) 
+        this.setState({attendees: attendees.sort(sortPlayers)})
         const usersRef = fbc.database.public.usersRef()
         usersRef.on('child_added', data => {
           var player = attendees.find(a => a.id === data.key)
           if (player){
             this.setState(state => ({players: [...state.players, {...data.val(), id: data.key}].sort(sortPlayers)}))
+          }
+          else {
+            fbc.database.public.usersRef(data.key).remove()
           }
         })
         usersRef.on('child_removed', data => {
@@ -83,7 +86,7 @@ export default class App extends Component {
       <li key={id}>
         { !this.state.isGameInProgress && <button className="move" onClick={() => action(user)}>{actionText}</button> }
         <Avatar user={user} size={30} />
-        <span> {firstName} {lastName}</span>
+        <p> {firstName} {lastName}</p>
         { this.isAdmin(id)
             ? <button className="is admin" onClick={()=>this.setAdmin(id, false)}>Remove admin</button>
             : <button className="admin" onClick={()=>this.setAdmin(id, true)}>Make admin</button>

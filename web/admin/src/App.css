@@ -26,15 +26,30 @@ ul.userList {
 
 ul.userList li {
   padding: 3px;
-  overflow: scroll;
+  flex: 1;
+  display: flex;
+  flex-direction: nowrap;
 }
 
-ul.userList li span {
+ul.userList li p {
   vertical-align: middle;
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: row wrap;
+  margin: 0px;
+  padding: 5px;
+  margin-top: 2px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
 }
+
 
 button.move {
   margin-right: 5px;
+  height: 20px;
+  margin-top: 5px;
 }
 
 .userListContainer {
@@ -45,9 +60,13 @@ button.move {
 button.admin {
   font-size: 12px;
   margin-left: 10px;
+  height: 20px;
+  margin-top: 5px;
   background-color: #73aaf3;
 }
 
 button.is.admin {
   background-color: #e97476;
+  height: 20px;
+  margin-top: 5px;
 }

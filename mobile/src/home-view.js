@@ -163,15 +163,13 @@ export default class HomeView extends PureComponent {
                   </View>
                 : showScanner
                   ? <View>
-                      { client._b.isEmulated
+                       { client._b.isEmulated
                         ? <Text>No scanner in emulator</Text>
-                        :
+                        : 
                           <QRCodeScanner
                             onRead={this._onScan}
-                            permissionDialogTitle="Camera Permission"
-                            permissionDialogMessage="Required to eliminate your target" 
-                          />         
-                      }
+                          />  
+                       }
                       <Button text="CANCEL" onPress={() => this.setState({showScanner:false})} />
                     </View>
                   : justKilled
