@@ -343,7 +343,7 @@ export default class HomeView extends PureComponent {
     const assassin = this.state.players.find(u => u.id === assassinId)
     if (assassinId && assassin) {
       Alert.alert(
-        `Mark ${player.firstName} assassinated by ${assassin.firstName}`,
+        `Mark ${player.firstName} eliminated by ${assassin.firstName}`,
         'Use your admin powers to do this?',
         [
           {text: 'Cancel', style: 'cancel'},
