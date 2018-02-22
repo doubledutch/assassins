@@ -12,7 +12,7 @@ import colors from './colors'
 
 const helpTexts = [
   "We've detected some target agents in your area. Your mission, should you choose to accept it, is to avoid detection and eliminate the rival agents.",
-  "Once you accept your mission, you will choose the method other agents must use to try to eliminate you, at which point we will send you your first target.",
+  "Once you accept your mission, you will choose your method that target agents must use when attempting to eliminate you from the mission. After this selection, you'll be sent your first target.",
   "After eliminating the target agent, mark your victory by scanning the agent's secret code with your phone. Your next target will be assigned after this confirmation.",
   "Are you ready?"
 ]

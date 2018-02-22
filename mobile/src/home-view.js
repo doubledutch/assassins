@@ -168,6 +168,8 @@ export default class HomeView extends PureComponent {
                         : 
                           <QRCodeScanner
                             onRead={this._onScan}
+                            permissionDialogTitle="Camera Permission"
+                            permissionDialogMessage="Required to eliminate your target" 
                           />  
                        }
                       <Button text="CANCEL" onPress={() => this.setState({showScanner:false})} />
@@ -269,11 +271,9 @@ export default class HomeView extends PureComponent {
         <Avatar size={40} user={player} client={client} />
         <Text style={{fontSize:16, marginTop: 7, textAlign: 'center'}}>{player.firstName} {player.lastName}</Text>
       </View>)
-
     const {players} = this.state
     const killer = players.find(u => u.id === item.by)
     const killed = players.find(u => u.id === item.target)
-    console.log(killed)
     return (
       <Box style={{flexDirection: 'row', marginBottom: 5}}>
         {renderPlayer(killer)}
