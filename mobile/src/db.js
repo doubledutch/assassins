@@ -45,7 +45,6 @@ export default function Database(fbc) {
     watchKills(component) {
       killsRef.on('child_added', data => {
         const kill = data.val()
-
         component.setState(state => ({
           killsBy: {...state.killsBy, [kill.by]: state.killsBy[kill.by] ? [kill.target, ...state.killsBy[kill.by]] : [kill.target]},
           killed: {...state.killed, [kill.target]: kill.by},
