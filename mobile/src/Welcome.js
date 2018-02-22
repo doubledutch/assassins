@@ -58,7 +58,7 @@ export default class Welcome extends PureComponent {
                 { killMethods.map((m,i) => (
                   <TouchableOpacity key={i} onPress={() => this._selectKillMethod(i)} style={s.killMethod}>
                     <Box style={[s.killMethodBox, this.state.killMethod === i ? s.highlighted : null]}>
-                      <Text style={s.killMethodTitle}>{m.title}</Text>
+                      {this.renderPhoto(m)}
                       <Text style={s.killdes}>{m.description}</Text>
                     </Box>
                   </TouchableOpacity>
@@ -73,6 +73,14 @@ export default class Welcome extends PureComponent {
 
   _selectKillMethod = killMethod => {
     this.setState({killMethod})
+  }
+
+  renderPhoto = (m) => {
+    if (this.props.height > 650){
+      return (
+        <Text style={s.killMethodTitle}>{m.title}</Text>
+      )
+    }
   }
 
   _confirmKillMethod = () => {

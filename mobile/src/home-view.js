@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import ReactNative, {
-  Alert, FlatList, Image, PermissionsAndroid, ScrollView, TouchableOpacity, TextInput, View
+  Alert, FlatList, Image, PermissionsAndroid, ScrollView, TouchableOpacity, TextInput, View, Dimensions
 } from 'react-native'
 
 import QRCode from 'react-native-qrcode'
@@ -73,7 +73,7 @@ export default class HomeView extends PureComponent {
   render() {
     const {isAdmin, isAdminExpanded, isLoaded, killsBy, players, targets} = this.state
     const me = players.find(u => u.id === client.currentUser.id)
-
+    const height = Dimensions.get('window').height
     return (
       <View style={s.container}>
         <TitleBar title="Ice Breaker Espionage" client={client} signin={this.signin} />
@@ -97,7 +97,7 @@ export default class HomeView extends PureComponent {
                   ? targets
                     ? this.renderMain(me)
                     : <View style={s.centerChildren}><CrossHairs size={200} text="AWAITING YOUR FIRST TARGET" rotate={true} /></View>
-                  : <Welcome db={db} killMethods={killMethods} />
+                  : <Welcome db={db} killMethods={killMethods} height={height}/>
                 : targets
                   ? <View style={s.centerChildren}><CrossHairs size={200} text="GAME ALREADY IN PROGRESS" rotate={true} /></View>
                   : <View style={s.centerChildren}><CrossHairs size={200} text="Nothing to see here, civilian..." rotate={true} /></View>
