@@ -90,7 +90,7 @@ export default class Welcome extends PureComponent {
 
 const s = StyleSheet.create({
   carousel: {
-    height: 150
+    height: 200
   },
   welcome: {
     fontSize: 24,

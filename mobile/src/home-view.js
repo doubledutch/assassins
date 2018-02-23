@@ -107,6 +107,20 @@ export default class HomeView extends PureComponent {
     )
   }
 
+
+  renderPhoto = (height) => {
+    console.log(height)
+    if (height > 700){
+      return 200
+    }
+    if (height > 650){
+      return 150
+    }
+    else {
+      return 100
+    }
+  }
+
   renderMain(me) {
     const {justKilled, killed, kills, killsBy, showScanner} = this.state
     let {tab} = this.state
@@ -116,6 +130,7 @@ export default class HomeView extends PureComponent {
     const killMethod = yourTarget ? killMethods[+yourTarget.killMethod] || killMethods[0] : null
     const alive = this.state.players.filter(p => !killed[p.id])
     const isGameOverForMe = alive.length < 1 || whoAssassinatedMe
+    const height = Dimensions.get('window').height
 
     if (tab === 0 && isGameOverForMe) tab = 1
     if (alive.length <= 1) tab = 2
@@ -131,7 +146,7 @@ export default class HomeView extends PureComponent {
                 <View style={s.qrcode}>
                   <QRCode
                     value={JSON.stringify(client.currentUser.id)}
-                    size={300}
+                    size={280}
                     bgColor={colors.neon}
                     fgColor={colors.gray} />
                 </View>
@@ -191,13 +206,13 @@ export default class HomeView extends PureComponent {
                         <Header text="Target Acquired" />
                         <View style={[s.section, s.container]}>
                           <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
-                            <Avatar size={100} user={yourTarget} client={client} />
+                            <Avatar size={this.renderPhoto(height)} user={yourTarget} client={client} />
                             <View>
-                              <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{yourTarget.firstName} {yourTarget.lastName}</Text>
+                              <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{this.truncateName(yourTarget)}</Text>
                               <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
                             </View>
                           </Box>
-                          <Box style={{marginVertical: 7, paddingVertical: 15, flexDirection: 'row', alignItems: 'center'}}>
+                          <Box style={{marginVertical: 7, flexDirection: 'row', alignItems: 'center'}}>
                             <Text style={{fontSize: 50, marginRight: 10}}>{killMethod.title}</Text>
                             <Text style={{flex:1, fontSize: 16}}>{killMethod.instructions}</Text>
                           </Box>
@@ -211,7 +226,7 @@ export default class HomeView extends PureComponent {
                         <View style={{alignItems: 'center'}}>
                           <SmileyRain style={{opacity: 0.9}} />
                           <Avatar size={100} user={alive[0]} client={client} style={{marginVertical:10}} />
-                          <Text style={{fontSize:20, marginBottom:10}}>{alive[0].firstName} {alive[0].lastName}</Text>
+                          <Text style={{fontSize:20, marginBottom:10}}>{this.truncateName(alive[0])}</Text>
                         </View>
                       </View>
                     : <View style={s.container}>
@@ -254,12 +269,20 @@ export default class HomeView extends PureComponent {
 
   _killKeyExtractor = kill => `${kill.by}:${kill.target}`
 
+  truncateName = (user) => {
+    var name = user.firstName + " " + user.lastName
+    if (name.length > 20) {
+      name = name.substring(1, 20) + "..."
+    }
+    return name
+  }
+
   renderDebriefForPlayer(player, avatarSize) {
     return (
       <View key={player.id} style={{flexDirection: 'row'}}>
         <Avatar size={avatarSize} user={player} client={client} style={{marginRight:7}} />
         <View style={{flex:1, justifyContent: 'space-around'}}>
-          <Text style={{fontSize:18}}>{player.firstName} {player.lastName}</Text>
+          <Text style={{fontSize:18}}>{this.truncateName(player)}</Text>
           <Text>{player.title}{player.title && player.company ? ', ' : ''}{player.company}</Text>
         </View>
       </View>
@@ -269,7 +292,7 @@ export default class HomeView extends PureComponent {
   renderMissionUpdate = ({item}) => {
     const renderPlayer = player => (<View style={{flex:1, alignItems: 'center', justifyContent: 'center'}}>
         <Avatar size={40} user={player} client={client} />
-        <Text style={{fontSize:16, marginTop: 7, textAlign: 'center'}}>{player.firstName} {player.lastName}</Text>
+        <Text style={{fontSize:16, marginTop: 7, textAlign: 'center'}}>{this.truncateName(player)}</Text>
       </View>)
     const {players} = this.state
     const killer = players.find(u => u.id === item.by)
@@ -313,7 +336,7 @@ export default class HomeView extends PureComponent {
     <Box style={[s.listPlayer, this.state.killed[item.id] ? {opacity:0.6} : null]}>
       <Avatar user={item} size={50} client={client} style={{marginRight:18}} />
       <View style={{justifyContent:'space-between', flex:1}}>
-        <Text style={{fontSize: 18}}>{item.firstName} {item.lastName}</Text>
+        <Text style={{fontSize: 18}}>{this.truncateName(item)}</Text>
         <View style={[{flexDirection: 'row', flexWrap:'wrap'}]}>
           { this.state.killsBy[item.id] && <View style={[s.row, {marginRight:5}]}>
               <Text>Eliminated:  </Text>

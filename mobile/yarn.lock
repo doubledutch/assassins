@@ -6,7 +6,7 @@
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@doubledutch/base-client/-/base-client-3.0.3.tgz#d9ebd692c65ec5b4d72df24b71e0081e953a6de4"
 
-"@doubledutch/firebase-connector@^3.2.3":
+"@doubledutch/firebase-connector@^3.3.0":
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/@doubledutch/firebase-connector/-/firebase-connector-3.3.1.tgz#a3533d2bed3e8081ca285bb5450d692aef1df2a2"
   dependencies:
