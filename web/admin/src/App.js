@@ -141,10 +141,10 @@ export default class App extends Component {
 }
 
 function sortPlayers(a,b) {
-  const aFirst = a.firstName.toLowerCase()
-  const bFirst = b.firstName.toLowerCase()
-  const aLast = a.lastName.toLowerCase()
-  const bLast = b.firstName.toLowerCase()
+  const aFirst = (a.firstName || '').toLowerCase()
+  const bFirst = (b.firstName || '').toLowerCase()
+  const aLast = (a.lastName || '').toLowerCase()
+  const bLast = (b.lastName || '').toLowerCase()
   if (aFirst !== bFirst) return aFirst < bFirst ? -1 : 1
-  return aLast < bLast ? -1 : 1
+    return aLast < bLast ? -1 : 1
 }
