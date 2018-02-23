@@ -272,7 +272,7 @@ export default class HomeView extends PureComponent {
   truncateName = (user) => {
     var name = user.firstName + " " + user.lastName
     if (name.length > 20) {
-      name = name.substring(1, 20) + "..."
+      name = name.substring(0, 20) + "..."
     }
     return name
   }
