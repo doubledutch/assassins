@@ -26,7 +26,6 @@ export default class Admin extends PureComponent {
 
   render() {
     const { players, targets } = this.state
-
     return (
       this.props.isExpanded
       ? <View style={s.main}>
@@ -61,13 +60,13 @@ export default class Admin extends PureComponent {
         : <Button style={s.remove} text="❌️" onPress={() => this._removePlayer(item)} />
       }
       <Avatar user={item} size={40} client={client} />
-      <Text style={s.listPlayerText}>{item.firstName} {item.lastName}</Text>
+      <Text style={s.listPlayerText}>{this.truncateName(item)}</Text>
     </View>
   )
 
   _removePlayer = player => {
     Alert.alert(
-      `Remove ${player.firstName}?`,
+      `Remove ${this.truncateName(player)}?`,
       'This can only be undone from the CMS.',
       [
         {text: 'Cancel', style: 'cancel'},
@@ -76,6 +75,14 @@ export default class Admin extends PureComponent {
         }},
       ]
     )
+  }
+
+  truncateName = (user) => {
+    var name = user.firstName + " " + user.lastName
+    if (name.length > 20) {
+      name = name.substring(1, 20) + "..."
+    }
+    return name
   }
 
   // Randomly assign targets as a single directed cycle including all players.

@@ -58,7 +58,7 @@ export default class Welcome extends PureComponent {
                 { killMethods.map((m,i) => (
                   <TouchableOpacity key={i} onPress={() => this._selectKillMethod(i)} style={s.killMethod}>
                     <Box style={[s.killMethodBox, this.state.killMethod === i ? s.highlighted : null]}>
-                      <Text style={s.killMethodTitle}>{m.title}</Text>
+                      {this.renderPhoto(m)}
                       <Text style={s.killdes}>{m.description}</Text>
                     </Box>
                   </TouchableOpacity>
@@ -75,6 +75,14 @@ export default class Welcome extends PureComponent {
     this.setState({killMethod})
   }
 
+  renderPhoto = (m) => {
+    if (this.props.height > 650){
+      return (
+        <Text style={s.killMethodTitle}>{m.title}</Text>
+      )
+    }
+  }
+
   _confirmKillMethod = () => {
     this.props.db.setPlayerKillMethod(`${this.state.killMethod}`)
   }
@@ -82,7 +90,7 @@ export default class Welcome extends PureComponent {
 
 const s = StyleSheet.create({
   carousel: {
-    height: 150
+    height: 200
   },
   welcome: {
     fontSize: 24,
