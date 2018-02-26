@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import ReactNative, {
-  Alert, FlatList, Image, PermissionsAndroid, ScrollView, TouchableOpacity, TextInput, View, Dimensions
+  Alert, FlatList, Image, ScrollView, TouchableOpacity, TextInput, View, Dimensions, PermissionsAndroid
 } from 'react-native'
 
 import QRCode from 'react-native-qrcode'
@@ -109,7 +109,6 @@ export default class HomeView extends PureComponent {
 
 
   renderPhoto = (height) => {
-    console.log(height)
     if (height > 700){
       return 200
     }
@@ -177,14 +176,14 @@ export default class HomeView extends PureComponent {
                       </View> }
                   </View>
                 : showScanner
-                  ? <View>
+                  ? <View style={{flex: 1, paddingBottom: 10}}>
                        { client._b.isEmulated
                         ? <Text>No scanner in emulator</Text>
                         : 
                           <QRCodeScanner
                             onRead={this._onScan}
                             permissionDialogTitle="Camera Permission"
-                            permissionDialogMessage="Required to eliminate your target" 
+                            permissionDialogMessage="Required to eliminate your target"
                           />  
                        }
                       <Button text="CANCEL" onPress={() => this.setState({showScanner:false})} />
