@@ -208,7 +208,7 @@ export default class HomeView extends PureComponent {
                             <Avatar size={this.renderPhoto(height)} user={yourTarget} client={client} />
                             <View>
                               <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{this.truncateName(yourTarget)}</Text>
-                              <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
+                              <Text style={{fontSize: 18, textAlign: 'center'}}>{this.truncateCompany(height, yourTarget)}</Text>
                             </View>
                           </Box>
                           <Box style={{marginVertical: 7, flexDirection: 'row', alignItems: 'center'}}>
@@ -274,6 +274,17 @@ export default class HomeView extends PureComponent {
       name = name.substring(0, 20) + "..."
     }
     return name
+  }
+
+  truncateCompany = (height, user) => {
+    if (height > 650){ 
+      var spacer = user.title && user.company ? ', ' : ''
+      var title = user.title + spacer + user.company
+      if (title.length > 30) {
+        title = title.substring(0, 30) + "..."
+      }
+      return title
+    }
   }
 
   renderDebriefForPlayer(player, avatarSize) {
@@ -364,7 +375,7 @@ export default class HomeView extends PureComponent {
     const assassin = this.state.players.find(u => u.id === assassinId)
     if (assassinId && assassin) {
       Alert.alert(
-        `Mark ${player.firstName} eliminated by ${assassin.firstName}`,
+        `Mark ${this.truncateName(player)} eliminated by ${this.truncateName(assassin)}`,
         'Use your admin powers to do this?',
         [
           {text: 'Cancel', style: 'cancel'},
