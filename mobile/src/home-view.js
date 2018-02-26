@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import ReactNative, {
-  Alert, FlatList, Image, PermissionsAndroid, ScrollView, TouchableOpacity, TextInput, View
+  Alert, FlatList, Image, ScrollView, TouchableOpacity, TextInput, View, Dimensions, PermissionsAndroid
 } from 'react-native'
 
 import QRCode from 'react-native-qrcode'
@@ -24,9 +24,9 @@ const fbc = FirebaseConnector(client, 'assassins')
 const db = Database(fbc)
 
 const killMethods = [
-  {title: '📇', description: 'You accept a business card from the enemy agent', instructions: 'Hand your business card to the target'},
-  {title: '😄', description: 'The enemy agent places a sticker on you without you knowing', instructions: 'Place a sticker on the target without them knowing'},
-  {title: '📸', description: 'The enemy agent takes a photo with you and him/herself', instructions: 'Take a photo with yourself and the target'}
+  {title: '📇', description: 'You accept a business card from the target agent', instructions: 'Hand your business card to the target'},
+  {title: '😄', description: 'The target agent places a sticker on you without you knowing', instructions: 'Place a sticker on the target without them knowing'},
+  {title: '📸', description: 'The target agent takes a photo with you and him/herself', instructions: 'Take a photo with yourself and the target'}
 ]
 
 export default class HomeView extends PureComponent {
@@ -73,7 +73,7 @@ export default class HomeView extends PureComponent {
   render() {
     const {isAdmin, isAdminExpanded, isLoaded, killsBy, players, targets} = this.state
     const me = players.find(u => u.id === client.currentUser.id)
-
+    const height = Dimensions.get('window').height
     return (
       <View style={s.container}>
         <TitleBar title="Ice Breaker Espionage" client={client} signin={this.signin} />
@@ -97,7 +97,7 @@ export default class HomeView extends PureComponent {
                   ? targets
                     ? this.renderMain(me)
                     : <View style={s.centerChildren}><CrossHairs size={200} text="AWAITING YOUR FIRST TARGET" rotate={true} /></View>
-                  : <Welcome db={db} killMethods={killMethods} />
+                  : <Welcome db={db} killMethods={killMethods} height={height}/>
                 : targets
                   ? <View style={s.centerChildren}><CrossHairs size={200} text="GAME ALREADY IN PROGRESS" rotate={true} /></View>
                   : <View style={s.centerChildren}><CrossHairs size={200} text="Nothing to see here, civilian..." rotate={true} /></View>
@@ -105,6 +105,19 @@ export default class HomeView extends PureComponent {
         }
       </View>
     )
+  }
+
+
+  renderPhoto = (height) => {
+    if (height > 700){
+      return 200
+    }
+    if (height > 650){
+      return 150
+    }
+    else {
+      return 100
+    }
   }
 
   renderMain(me) {
@@ -116,6 +129,7 @@ export default class HomeView extends PureComponent {
     const killMethod = yourTarget ? killMethods[+yourTarget.killMethod] || killMethods[0] : null
     const alive = this.state.players.filter(p => !killed[p.id])
     const isGameOverForMe = alive.length < 1 || whoAssassinatedMe
+    const height = Dimensions.get('window').height
 
     if (tab === 0 && isGameOverForMe) tab = 1
     if (alive.length <= 1) tab = 2
@@ -127,11 +141,11 @@ export default class HomeView extends PureComponent {
             tab === 0 ? <View style={s.container}>
               <Header text="Secret Code" />
               <View style={[s.section, s.container]}>
-                <Text style={{fontSize: 16}}>If you are eliminated, the enemy agent will scan this secret code</Text>
+                <Text style={{fontSize: 16}}>If you are eliminated, the target agent will scan this secret code</Text>
                 <View style={s.qrcode}>
                   <QRCode
                     value={JSON.stringify(client.currentUser.id)}
-                    size={300}
+                    size={280}
                     bgColor={colors.neon}
                     fgColor={colors.gray} />
                 </View>
@@ -162,16 +176,16 @@ export default class HomeView extends PureComponent {
                       </View> }
                   </View>
                 : showScanner
-                  ? <View>
-                      { client._b.isEmulated
+                  ? <View style={{flex: 1, paddingBottom: 10}}>
+                       { client._b.isEmulated
                         ? <Text>No scanner in emulator</Text>
-                        :
+                        : 
                           <QRCodeScanner
                             onRead={this._onScan}
                             permissionDialogTitle="Camera Permission"
-                            permissionDialogMessage="Required to eliminate your target" 
-                          />         
-                      }
+                            permissionDialogMessage="Required to eliminate your target"
+                          />  
+                       }
                       <Button text="CANCEL" onPress={() => this.setState({showScanner:false})} />
                     </View>
                   : justKilled
@@ -191,13 +205,13 @@ export default class HomeView extends PureComponent {
                         <Header text="Target Acquired" />
                         <View style={[s.section, s.container]}>
                           <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
-                            <Avatar size={100} user={yourTarget} client={client} />
+                            <Avatar size={this.renderPhoto(height)} user={yourTarget} client={client} />
                             <View>
-                              <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{yourTarget.firstName} {yourTarget.lastName}</Text>
-                              <Text style={{fontSize: 18, textAlign: 'center'}}>{yourTarget.title}{yourTarget.title && yourTarget.company ? ', ' : ''}{yourTarget.company}</Text>
+                              <Text style={{fontSize: 26, textAlign: 'center', marginBottom: 6}}>{this.truncateName(yourTarget)}</Text>
+                              <Text style={{fontSize: 18, textAlign: 'center'}}>{this.truncateCompany(height, yourTarget)}</Text>
                             </View>
                           </Box>
-                          <Box style={{marginVertical: 7, paddingVertical: 15, flexDirection: 'row', alignItems: 'center'}}>
+                          <Box style={{marginVertical: 7, flexDirection: 'row', alignItems: 'center'}}>
                             <Text style={{fontSize: 50, marginRight: 10}}>{killMethod.title}</Text>
                             <Text style={{flex:1, fontSize: 16}}>{killMethod.instructions}</Text>
                           </Box>
@@ -211,7 +225,7 @@ export default class HomeView extends PureComponent {
                         <View style={{alignItems: 'center'}}>
                           <SmileyRain style={{opacity: 0.9}} />
                           <Avatar size={100} user={alive[0]} client={client} style={{marginVertical:10}} />
-                          <Text style={{fontSize:20, marginBottom:10}}>{alive[0].firstName} {alive[0].lastName}</Text>
+                          <Text style={{fontSize:20, marginBottom:10}}>{this.truncateName(alive[0])}</Text>
                         </View>
                       </View>
                     : <View style={s.container}>
@@ -254,12 +268,31 @@ export default class HomeView extends PureComponent {
 
   _killKeyExtractor = kill => `${kill.by}:${kill.target}`
 
+  truncateName = (user) => {
+    var name = user.firstName + " " + user.lastName
+    if (name.length > 20) {
+      name = name.substring(0, 20) + "..."
+    }
+    return name
+  }
+
+  truncateCompany = (height, user) => {
+    if (height > 650){ 
+      var spacer = user.title && user.company ? ', ' : ''
+      var title = user.title + spacer + user.company
+      if (title.length > 30) {
+        title = title.substring(0, 30) + "..."
+      }
+      return title
+    }
+  }
+
   renderDebriefForPlayer(player, avatarSize) {
     return (
       <View key={player.id} style={{flexDirection: 'row'}}>
         <Avatar size={avatarSize} user={player} client={client} style={{marginRight:7}} />
         <View style={{flex:1, justifyContent: 'space-around'}}>
-          <Text style={{fontSize:18}}>{player.firstName} {player.lastName}</Text>
+          <Text style={{fontSize:18}}>{this.truncateName(player)}</Text>
           <Text>{player.title}{player.title && player.company ? ', ' : ''}{player.company}</Text>
         </View>
       </View>
@@ -269,9 +302,8 @@ export default class HomeView extends PureComponent {
   renderMissionUpdate = ({item}) => {
     const renderPlayer = player => (<View style={{flex:1, alignItems: 'center', justifyContent: 'center'}}>
         <Avatar size={40} user={player} client={client} />
-        <Text style={{fontSize:16, marginTop: 7, textAlign: 'center'}}>{player.firstName} {player.lastName}</Text>
+        <Text style={{fontSize:16, marginTop: 7, textAlign: 'center'}}>{this.truncateName(player)}</Text>
       </View>)
-
     const {players} = this.state
     const killer = players.find(u => u.id === item.by)
     const killed = players.find(u => u.id === item.target)
@@ -314,7 +346,7 @@ export default class HomeView extends PureComponent {
     <Box style={[s.listPlayer, this.state.killed[item.id] ? {opacity:0.6} : null]}>
       <Avatar user={item} size={50} client={client} style={{marginRight:18}} />
       <View style={{justifyContent:'space-between', flex:1}}>
-        <Text style={{fontSize: 18}}>{item.firstName} {item.lastName}</Text>
+        <Text style={{fontSize: 18}}>{this.truncateName(item)}</Text>
         <View style={[{flexDirection: 'row', flexWrap:'wrap'}]}>
           { this.state.killsBy[item.id] && <View style={[s.row, {marginRight:5}]}>
               <Text>Eliminated:  </Text>
@@ -343,7 +375,7 @@ export default class HomeView extends PureComponent {
     const assassin = this.state.players.find(u => u.id === assassinId)
     if (assassinId && assassin) {
       Alert.alert(
-        `Mark ${player.firstName} eliminated by ${assassin.firstName}`,
+        `Mark ${this.truncateName(player)} eliminated by ${this.truncateName(assassin)}`,
         'Use your admin powers to do this?',
         [
           {text: 'Cancel', style: 'cancel'},

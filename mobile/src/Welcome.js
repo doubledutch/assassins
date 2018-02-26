@@ -11,9 +11,9 @@ import client, { Color } from '@doubledutch/rn-client'
 import colors from './colors'
 
 const helpTexts = [
-  "We've detected some enemy agents in your area. Your mission, should you choose to accept it, is to avoid detection and eliminate the rival agents.",
-  "Once you accept your mission, you will choose the method other agents must use to try to eliminate you, at which point we will send you your first target.",
-  "After eliminating the enemy agent, mark your victory by scanning the agent's QR code with your phone. Your next target will be assigned after this confirmation.",
+  "We've detected some target agents in your area. Your mission, should you choose to accept it, is to avoid detection and eliminate the rival agents.",
+  "Once you accept your mission, you will choose your method that target agents must use when attempting to eliminate you from the mission. After this selection, you'll be sent your first target.",
+  "After eliminating the target agent, mark your victory by scanning the agent's secret code with your phone. Your next target will be assigned after this confirmation.",
   "Are you ready?"
 ]
 
@@ -53,12 +53,12 @@ export default class Welcome extends PureComponent {
         <View>
           <Header text="Select Elimination Method" />
           <View style={s.killMethodsContainer}>
-            <Text>Choose a method that enemy agents must use to eliminate you.</Text>
+            <Text>Choose a method that target agents must use to eliminate you.</Text>
               <View style={s.killMethods}>
                 { killMethods.map((m,i) => (
                   <TouchableOpacity key={i} onPress={() => this._selectKillMethod(i)} style={s.killMethod}>
                     <Box style={[s.killMethodBox, this.state.killMethod === i ? s.highlighted : null]}>
-                      <Text style={s.killMethodTitle}>{m.title}</Text>
+                      {this.renderPhoto(m)}
                       <Text style={s.killdes}>{m.description}</Text>
                     </Box>
                   </TouchableOpacity>
@@ -75,6 +75,14 @@ export default class Welcome extends PureComponent {
     this.setState({killMethod})
   }
 
+  renderPhoto = (m) => {
+    if (this.props.height > 650){
+      return (
+        <Text style={s.killMethodTitle}>{m.title}</Text>
+      )
+    }
+  }
+
   _confirmKillMethod = () => {
     this.props.db.setPlayerKillMethod(`${this.state.killMethod}`)
   }
@@ -82,7 +90,7 @@ export default class Welcome extends PureComponent {
 
 const s = StyleSheet.create({
   carousel: {
-    height: 150
+    height: 200
   },
   welcome: {
     fontSize: 24,
