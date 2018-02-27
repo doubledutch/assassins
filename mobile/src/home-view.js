@@ -146,8 +146,8 @@ export default class HomeView extends PureComponent {
                   <QRCode
                     value={JSON.stringify(client.currentUser.id)}
                     size={280}
-                    bgColor={colors.neon}
-                    fgColor={colors.gray} />
+                    bgColor={"#000000"}
+                    fgColor={"#ffffff"} />
                 </View>
               </View>
             </View>
