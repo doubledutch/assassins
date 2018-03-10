@@ -23,6 +23,7 @@
     "react-native-video": "^2.0.0",
     "react-native-youtube": "^1.0.1"
   },
+  "license": "apache-2.0",
   "devDependencies": {
     "babel-preset-env": "^1.6.1",
     "babel-preset-react": "^6.24.1",
