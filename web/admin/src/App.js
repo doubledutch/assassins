@@ -89,7 +89,6 @@ export default class App extends Component {
             </div>
           : <div>Loading...</div>
         }
-        {/* <button onClick={() => fbc.getLongLivedAdminToken().then(token=>console.log(token))}>Create long lived token</button> */}
       </div>
     )
   }
