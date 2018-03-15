@@ -136,6 +136,18 @@ export default class HomeView extends PureComponent {
     }
   }
 
+  renderCode = (height) => {
+    if (height > 700){
+      return 300
+    }
+    if (height > 650){
+      return 280
+    }
+    else {
+      return 240
+    }
+  }
+
   renderMain(me) {
     const {justKilled, killed, kills, killsBy, showScanner} = this.state
     let {tab} = this.state
@@ -161,9 +173,9 @@ export default class HomeView extends PureComponent {
                 <View style={s.qrcode}>
                   <QRCode
                     value={JSON.stringify(client.currentUser.id)}
-                    size={280}
-                    bgColor={colors.neon}
-                    fgColor={colors.gray} />
+                    size={this.renderCode(height)}
+                    bgColor={"#000000"}
+                    fgColor={"#ffffff"} />
                 </View>
               </View>
             </View>

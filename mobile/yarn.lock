@@ -3482,16 +3482,16 @@ react-native-qrcode@^0.2.6:
     prop-types "^15.5.10"
     qr.js "0.0.0"
 
-react-native-video@2.0.0:
+react-native-video@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-2.0.0.tgz#f33fa6fb7e7e3c93ab5787944cefd58bf7355867"
   dependencies:
     keymirror "0.1.1"
     prop-types "^15.5.10"
 
-react-native-youtube@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/react-native-youtube/-/react-native-youtube-1.0.1.tgz#8d6ee69d88b913b4fa23ed64f99ae8812507745f"
+react-native-youtube@^1.0.1:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-youtube/-/react-native-youtube-1.1.0.tgz#efa30c4f7385d1951af643188e30760efd6c0784"
   dependencies:
     prop-types "^15.5.0"
 
