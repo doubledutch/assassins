@@ -27,7 +27,7 @@ export default class Text extends PureComponent {
 const s = StyleSheet.create({
   text: {
     backgroundColor: 'transparent',
-    fontFamily: Platform.select({ios: 'AmericanTypewriter', android: 'Droid Sans'}),
+    fontFamily: Platform.select({ios: 'Menlo', android: 'Droid Sans'}),
     color: '#fff'
   }
 })
