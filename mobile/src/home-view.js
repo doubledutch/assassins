@@ -31,6 +31,7 @@ import Smiley, { SmileyRain } from './Smiley'
 import Text from './Text'
 import Welcome from './Welcome'
 import Database from './db'
+import { killMethodImages } from './images'
 
 import client, { Avatar, Color, TitleBar } from '@doubledutch/rn-client'
 import colors from './colors'
@@ -240,7 +241,7 @@ export default class HomeView extends PureComponent {
                             </View>
                           </Box>
                           <Box style={{marginVertical: 7, flexDirection: 'row', alignItems: 'center'}}>
-                            <Text style={{fontSize: 50, marginRight: 10}}>{killMethod.title}</Text>
+                            { this.renderMethodIcon(killMethod) }
                             <Text style={{flex:1, fontSize: 16}}>{killMethod.instructions}</Text>
                           </Box>
                           <Button text="CONFIRM MISSION COMPLETE" onPress={this._showScanner}><TabImage type="secret_code" selected={true} /></Button>
@@ -313,6 +314,13 @@ export default class HomeView extends PureComponent {
       }
       return title
     }
+  }
+
+  renderMethodIcon = (m) => {
+    if (m.title === '😄') return <Smiley size={50} style={s.killMethodTitleComponent} />
+    const image = killMethodImages[m.title]
+    if (image) return <Image source={image} style={[s.killMethodTitleComponent, s.killMethodTitleImage]} />
+    return <Text style={{fontSize: 50, marginRight: 10}}>{m.title}</Text>
   }
 
   renderDebriefForPlayer(player, avatarSize) {
@@ -614,6 +622,14 @@ const s = ReactNative.StyleSheet.create({
   killMethodTitle: {
     fontSize: 24,
     paddingBottom: 5
+  },
+  killMethodTitleComponent: {
+    height: 50,
+    marginRight: 10,
+  },
+  killMethodTitleImage: {
+    width: 65,
+    resizeMode: 'center',
   },
   backgroundImage: {
     position: 'absolute',
