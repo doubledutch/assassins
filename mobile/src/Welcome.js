@@ -67,30 +67,33 @@ export default class Welcome extends PureComponent {
   renderMethodSelector() {
     const { killMethods } = this.props
     return (
-      <View style={s.buttonBottomContainer}>
-        <View>
-          <Header text="Select Elimination Method" />
-          <View style={s.killMethodsContainer}>
-            <Text>Choose a method that target agents must use to eliminate you.</Text>
-              <View style={s.killMethods}>
-                { killMethods.map((m,i) => (
-                  <TouchableOpacity key={i} onPress={() => this._selectKillMethod(i)} style={s.killMethod}>
-                    <Box style={[s.killMethodBox, this.state.killMethod === i ? s.highlighted : null]}>
-                      {this.renderPhoto(m)}
-                      <Text style={s.killdes}>{m.description}</Text>
-                    </Box>
-                  </TouchableOpacity>
-                )) }
-              </View>
+      <ScrollView ref={sv => this.scrollView = sv}>
+        <View style={s.buttonBottomContainer}>
+          <View>
+            <Header text="Select Elimination Method" />
+            <View style={s.killMethodsContainer}>
+              <Text>Choose a method that target agents must use to eliminate you.</Text>
+                <View style={s.killMethods}>
+                  { killMethods.map((m,i) => (
+                    <TouchableOpacity key={i} onPress={() => this._selectKillMethod(i)} style={s.killMethod}>
+                      <Box style={[s.killMethodBox, this.state.killMethod === i ? s.highlighted : null]}>
+                        {this.renderPhoto(m)}
+                        <Text style={s.killdes}>{m.description}</Text>
+                      </Box>
+                    </TouchableOpacity>
+                  )) }
+                </View>
+            </View>
           </View>
+          <Button text="NEXT" style={s.bottomButton} onPress={this._confirmKillMethod} disabled={this.state.killMethod == null} />
         </View>
-        <Button text="NEXT" style={s.bottomButton} onPress={this._confirmKillMethod} disabled={this.state.killMethod == null} />
-      </View>
+      </ScrollView>
     )
   }
 
   _selectKillMethod = killMethod => {
     this.setState({killMethod})
+    this.scrollView.scrollToEnd()
   }
 
   renderPhoto = (m) => {
