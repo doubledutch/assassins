@@ -97,14 +97,12 @@ export default class Welcome extends PureComponent {
   }
 
   renderPhoto = (m) => {
-    if (this.props.height > 650){
-      if (m.title === '😄') return <Smiley size={50} style={s.killMethodTitleComponent} />
-      const image = killMethodImages[m.title]
-      if (image) return <Image source={image} style={[s.killMethodTitleComponent, s.killMethodTitleImage]} />
-      return (
-        <Text style={s.killMethodTitle}>{m.title}</Text>
-      )
-    }
+    if (m.title === '😄') return <Smiley size={50} style={s.killMethodTitleComponent} />
+    const image = killMethodImages[m.title]
+    if (image) return <Image source={image} style={[s.killMethodTitleComponent, s.killMethodTitleImage]} />
+    return (
+      <Text style={s.killMethodTitle}>{m.title}</Text>
+    )
   }
 
   _confirmKillMethod = () => {
@@ -170,6 +168,6 @@ const s = StyleSheet.create({
   },
   killMethodBox: {
     alignItems: 'center',
-    minHeight: 175
+    minHeight: 190
   }
 })
