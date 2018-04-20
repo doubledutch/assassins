@@ -40,7 +40,7 @@ import firebase from 'firebase'
 const fbc = FirebaseConnector(client, 'assassins')
 const db = Database(fbc)
 
-const killMethods = [
+const defaultKillMethods = [
   {title: '📇', description: 'You accept a business card from the target agent', instructions: 'Hand your business card to the target'},
   {title: '😄', description: 'The target agent places a sticker on you without you knowing', instructions: 'Place a sticker on the target without them knowing'},
   {title: '📸', description: 'The target agent takes a photo with you and him/herself', instructions: 'Take a photo with yourself and the target'}
@@ -53,6 +53,7 @@ export default class HomeView extends PureComponent {
     this.state = {
       players: [],
       targets: null,
+      killMethods: defaultKillMethods,
       kills: [],
       killsBy: {},
       killed: {},
@@ -81,6 +82,7 @@ export default class HomeView extends PureComponent {
         db.watchTargets(this)
         db.watchKills(this)
         db.watchPlayers(this)
+        db.watchKillMethods(this)
         // Small hack at the end to know when initial data is all loaded.
         db.database.public.adminRef().once('value', () => this.setState({isLoaded: true}))
       }
@@ -88,7 +90,7 @@ export default class HomeView extends PureComponent {
   }
 
   render() {
-    const {isAdmin, isAdminExpanded, isLoaded, killsBy, players, targets} = this.state
+    const {isAdmin, isAdminExpanded, isLoaded, killsBy, killMethods, players, targets} = this.state
     const me = players.find(u => u.id === client.currentUser.id)
     const height = Dimensions.get('window').height
     return (
@@ -114,7 +116,7 @@ export default class HomeView extends PureComponent {
                   ? targets
                     ? this.renderMain(me)
                     : <View style={s.centerChildren}><CrossHairs size={200} text="AWAITING YOUR FIRST TARGET" rotate={true} /></View>
-                  : <Welcome db={db} killMethods={killMethods} height={height}/>
+                  : <Welcome db={db} killMethods={killMethods} />
                 : targets
                   ? <View style={s.centerChildren}><CrossHairs size={200} text="GAME ALREADY IN PROGRESS" rotate={true} /></View>
                   : <View style={s.centerChildren}><CrossHairs size={200} text="Nothing to see here, civilian..." rotate={true} /></View>
@@ -150,7 +152,7 @@ export default class HomeView extends PureComponent {
   }
 
   renderMain(me) {
-    const {justKilled, killed, kills, killsBy, showScanner} = this.state
+    const {justKilled, killed, killMethods, kills, killsBy, showScanner} = this.state
     let {tab} = this.state
 
     const whoAssassinatedMe = this._whoAssassinatedMe()

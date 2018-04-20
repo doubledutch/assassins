@@ -22,6 +22,13 @@ import FirebaseConnector from '@doubledutch/firebase-connector'
 const fbc = FirebaseConnector(client, 'assassins')
 fbc.initializeAppWithSimpleBackend()
 
+const defaultKillMethods = [
+  {title: '📇', description: 'You accept a business card from the target agent', instructions: 'Hand your business card to the target'},
+  {title: '😄', description: 'The target agent places a sticker on you without you knowing', instructions: 'Place a sticker on the target without them knowing'},
+  {title: '📸', description: 'The target agent takes a photo with you and him/herself', instructions: 'Take a photo with yourself and the target'},
+  {title: '🙂', description: '', instructions: ''}
+]
+
 export default class App extends Component {
   constructor() {
     super()
@@ -29,6 +36,7 @@ export default class App extends Component {
     this.state = {
       players: [],
       admins: [],
+      killMethods: defaultKillMethods,
       isGameInProgress: true // Assume game is in progress until we find out otherwise.
     }
   }
@@ -58,12 +66,21 @@ export default class App extends Component {
           const users = data.val() || {}
           this.setState({admins: Object.keys(users).filter(id => users[id].adminToken)})
         })
+        fbc.database.public.adminRef('killMethods').on('value', data => {
+          const val = data.val()
+          if (val) {
+            const killMethods = Object.keys(val).reduce((arr, i) => {arr[+i] = {...val[i], id: +i}; return arr}, []);
+            this.setState({killMethods})
+          } else {
+            fbc.database.public.adminRef('killMethods').set(defaultKillMethods)
+          }
+        })
       })
     })
   }
 
   render() {
-    const {attendees, players, isGameInProgress} = this.state
+    const {attendees, killMethods, players, isGameInProgress} = this.state
     const playersById = players.reduce((players, player) => { players[player.id] = player; return players; }, {})
     const nonPlayers = attendees ? attendees.filter(a => !playersById[a.id]) : null
     return (
@@ -83,8 +100,20 @@ export default class App extends Component {
               <div className="userListContainer">
                 <h4>Players ({players.length}) <button disabled={isGameInProgress || !players.length} onClick={this.removeAllPlayers}>&lt;&lt; Remove ALL</button></h4>
                 <ul className="userList">
-                { players.map(user => this.renderUser(user, true)) }
-              </ul>
+                  { players.map(user => this.renderUser(user, true)) }
+                </ul>
+              </div>
+              <div>
+                <h4>Custom Elimination Methods</h4>
+                <ol className="methods">
+                  {[0,1,2,3].map(i => (
+                    <li key={i}>
+                      <input type="text" maxLength={2} className="method-icon" value={killMethods[i].title} onChange={this.updateMethodTitle(i)} />
+                      <input type="text" maxLength={65} placeholder="Description" className="method-description" value={killMethods[i].description} onChange={this.updateMethodDescription(i)} />
+                      <input type="text" maxLength={65} placeholder="Instructions" className="method-instructions" value={killMethods[i].instructions} onChange={this.updateMethodInstructions(i)} />
+                    </li>
+                  ))}
+                </ol>
               </div>
             </div>
           : <div>Loading...</div>
@@ -153,6 +182,10 @@ export default class App extends Component {
       targetsRef.remove()
     }
   }
+
+  updateMethodTitle = index => e => fbc.database.public.adminRef('killMethods').child(index).update({title: e.target.value})
+  updateMethodDescription = index => e => fbc.database.public.adminRef('killMethods').child(index).update({description: e.target.value})
+  updateMethodInstructions = index => e => fbc.database.public.adminRef('killMethods').child(index).update({instructions: e.target.value})
 }
 
 function sortPlayers(a,b) {

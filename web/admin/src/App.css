@@ -71,6 +71,7 @@ button.move {
 .userListContainer {
   display: inline-block;
   padding-right: 10px;
+  margin-bottom: 10px;
 }
 
 button.admin {
@@ -85,4 +86,23 @@ button.is.admin {
   background-color: #e97476;
   height: 20px;
   margin-top: 5px;
+}
+
+ol.methods li {
+  margin-bottom: 0.5em;
+}
+
+ol.methods input {
+  font-size: 1em;
+  margin-right: 0.7em;
+  padding: 0.2em;
+}
+
+.method-icon {
+  width: 2em;
+  text-align: center;
+}
+
+.method-description, .method-instructions {
+  width: 19em;
 }

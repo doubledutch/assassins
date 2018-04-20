@@ -86,7 +86,10 @@ export default function Database(fbc) {
       killMethodsRef.on('value', data => {
         const val = data.val()
         if (val) {
-          component.setState({killMethods: Object.keys(val).reduce((arr, i) => {arr[+i] = {...val[i], id: +i}; return arr}, [])})
+          const killMethods = Object.keys(val)
+            .reduce((arr, i) => {arr[+i] = {...val[i], id: +i}; return arr}, [])
+            .filter(m => m.title && m.description && m.instructions)
+          component.setState({killMethods})
         }
       })
     },
