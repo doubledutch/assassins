@@ -104,7 +104,7 @@ export default class App extends Component {
                 </ul>
               </div>
               <div>
-                <h4>Custom Elimination Methods</h4>
+                <h4>Custom Elimination Methods <button onClick={this.resetMethods}>Reset</button></h4>
                 <ol className="methods">
                   {[0,1,2,3].map(i => (
                     <li key={i}>
@@ -186,6 +186,11 @@ export default class App extends Component {
   updateMethodTitle = index => e => fbc.database.public.adminRef('killMethods').child(index).update({title: e.target.value})
   updateMethodDescription = index => e => fbc.database.public.adminRef('killMethods').child(index).update({description: e.target.value})
   updateMethodInstructions = index => e => fbc.database.public.adminRef('killMethods').child(index).update({instructions: e.target.value})
+  resetMethods = () => {
+    if (window.confirm('Are you sure you want to reset the elimination methods back to the defaults?')) {
+      fbc.database.public.adminRef('killMethods').set(defaultKillMethods)
+    }
+  }
 }
 
 function sortPlayers(a,b) {
