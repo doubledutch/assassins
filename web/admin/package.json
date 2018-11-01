@@ -4,10 +4,10 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
-    "@doubledutch/admin-client": "^1.1.8",
-    "@doubledutch/firebase-connector": "^3.2.3",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
+    "@doubledutch/admin-client": "^2.0.2",
+    "@doubledutch/firebase-connector": "^4.1.0",
+    "react": "^16.6.0",
+    "react-dom": "^16.6.0",
     "react-scripts": "1.0.14"
   },
   "scripts": {

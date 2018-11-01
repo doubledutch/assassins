@@ -15,17 +15,13 @@
  */
 
 import React, { PureComponent } from 'react'
-import ReactNative, {
-  Image, Platform, ScrollView, StyleSheet, Text as RNText, TouchableOpacity, View
-} from 'react-native'
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import Box from './Box'
 import Button from './Button'
 import Header from './Header'
 import Text from './Text'
 import Carousel from './Carousel'
 import Smiley from './Smiley'
-import client, { Color } from '@doubledutch/rn-client'
-import colors from './colors'
 import { killMethodImages } from './images'
 
 const helpTexts = [
@@ -36,21 +32,19 @@ const helpTexts = [
 ]
 
 export default class Welcome extends PureComponent {
-  constructor() {
-    super()
-    this.state = {
-      showHelp: true,
-      canAccept: false
-    }
+  state = {
+    showHelp: true,
+    canAccept: false
   }
 
   render() {
     const { showHelp, canAccept } = this.state
+    const {currentUser} = this.props
     if (showHelp) {
       return (
         <View style={s.buttonBottomContainer}>
           <View>
-            <Text style={s.welcome}>Welcome, Agent {client.currentUser.lastName || client.currentUser.firstName}</Text>
+            <Text style={s.welcome}>Welcome, Agent {currentUser.lastName || currentUser.firstName}</Text>
             <Carousel texts={helpTexts} onStepChange={this._onStepChange} style={s.carousel} />
           </View>
           <Button text="ACCEPT MISSION" onPress={this._accept} disabled={!canAccept} style={s.bottomButton} />

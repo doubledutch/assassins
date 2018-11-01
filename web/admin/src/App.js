@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-import React, { Component } from 'react'
+import React, { PureComponent } from 'react'
 import './App.css'
 import client from '@doubledutch/admin-client'
 import Avatar from './Avatar'
-import FirebaseConnector from '@doubledutch/firebase-connector'
-const fbc = FirebaseConnector(client, 'assassins')
-fbc.initializeAppWithSimpleBackend()
-
+import {provideFirebaseConnectorToReactComponent} from '@doubledutch/firebase-connector'
 const defaultKillMethods = [
   {title: '📇', description: 'You accept a business card from the target agent', instructions: 'Hand your business card to the target'},
   {title: '😄', description: 'The target agent places a sticker on you without you knowing', instructions: 'Place a sticker on the target without them knowing'},
@@ -29,22 +26,19 @@ const defaultKillMethods = [
   {title: '🙂', description: '', instructions: ''}
 ]
 
-export default class App extends Component {
-  constructor() {
-    super()
-
-    this.state = {
-      players: [],
-      admins: [],
-      killMethods: defaultKillMethods,
-      isGameInProgress: true // Assume game is in progress until we find out otherwise.
-    }
+class App extends PureComponent {
+  state = {
+    players: [],
+    admins: [],
+    killMethods: defaultKillMethods,
+    isGameInProgress: true // Assume game is in progress until we find out otherwise.
   }
 
   componentDidMount() {
+    const {fbc} = this.props
     fbc.signinAdmin()
     .then(() => {
-      client.getUsers().then(attendees => {
+      client.getAttendees().then(attendees => {
         this.setState({attendees: attendees.sort(sortPlayers)})
         const usersRef = fbc.database.public.usersRef()
         usersRef.on('child_added', data => {
@@ -124,7 +118,7 @@ export default class App extends Component {
 
   renderUser(user, isPlayer) {
     const { id, firstName, lastName } = user
-    const action = isPlayer ? this.removePlayer : this.addPlayer
+    const action = isPlayer ? x => this.removePlayer(x) : x => this.addPlayer(x)
     const actionText = isPlayer ? '< Remove' : 'Add >' 
     return (
       <li key={id}>
@@ -144,6 +138,7 @@ export default class App extends Component {
   }
 
   setAdmin(userId, isAdmin) {
+    const {fbc} = this.props
     const tokenRef = fbc.database.private.adminableUsersRef(userId).child('adminToken')
     if (isAdmin) {
       this.setState()
@@ -154,27 +149,28 @@ export default class App extends Component {
   }
 
   addPlayer(user) {
-    fbc.database.public.usersRef(user.id).set(user)
+    this.props.fbc.database.public.usersRef(user.id).set(user)
   }
   addAllPlayers = () => {
     const {attendees, players} = this.state
     const playersById = players.reduce((players, player) => { players[player.id] = player; return players; }, {})
     const nonPlayers = attendees ? attendees.filter(a => !playersById[a.id]) : null
     if (window.confirm(`Are you sure you want to add all ${nonPlayers.length} attendees as players?`)) {
-      attendees.forEach(this.addPlayer)
+      attendees.forEach(p => this.addPlayer(p))
     }
   }
 
   removePlayer(user) {
-    fbc.database.public.usersRef(user.id).remove()
+    this.props.fbc.database.public.usersRef(user.id).remove()
   }
   removeAllPlayers = () => {
     const {players} = this.state
     if (window.confirm(`Are you sure you want to remove all ${players.length} players?`)) {
-      players.forEach(this.removePlayer)
+      players.forEach(p => this.removePlayer(p))
     }
   }
   abortGame = () => {
+    const {fbc} = this.props
     if (window.confirm(`Are you sure you want to abort this game with ${this.state.players.length} players?`)) {
       const killsRef = fbc.database.public.allRef('kills')
       const targetsRef = fbc.database.public.adminRef('targets')
@@ -183,15 +179,17 @@ export default class App extends Component {
     }
   }
 
-  updateMethodTitle = index => e => fbc.database.public.adminRef('killMethods').child(index).update({title: e.target.value})
-  updateMethodDescription = index => e => fbc.database.public.adminRef('killMethods').child(index).update({description: e.target.value})
-  updateMethodInstructions = index => e => fbc.database.public.adminRef('killMethods').child(index).update({instructions: e.target.value})
+  updateMethodTitle = index => e => this.props.fbc.database.public.adminRef('killMethods').child(index).update({title: e.target.value})
+  updateMethodDescription = index => e => this.props.fbc.database.public.adminRef('killMethods').child(index).update({description: e.target.value})
+  updateMethodInstructions = index => e => this.props.fbc.database.public.adminRef('killMethods').child(index).update({instructions: e.target.value})
   resetMethods = () => {
     if (window.confirm('Are you sure you want to reset the elimination methods back to the defaults?')) {
-      fbc.database.public.adminRef('killMethods').set(defaultKillMethods)
+      this.props.fbc.database.public.adminRef('killMethods').set(defaultKillMethods)
     }
   }
 }
+
+export default provideFirebaseConnectorToReactComponent(client, 'assassins', (props, fbc) => <App {...props} fbc={fbc} />, PureComponent)
 
 function sortPlayers(a,b) {
   const aFirst = (a.firstName || '').toLowerCase()
