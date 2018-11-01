@@ -15,9 +15,7 @@
  */
 
 import React, { PureComponent } from 'react'
-import ReactNative, {
-  Alert, FlatList, Image, ScrollView, TouchableOpacity, TextInput, View, Dimensions, PermissionsAndroid
-} from 'react-native'
+import { Alert, Dimensions, FlatList, Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 
 import QRCode from 'react-native-qrcode'
 import QRCodeScanner from 'react-native-qrcode-scanner'
@@ -35,10 +33,8 @@ import { killMethodImages } from './images'
 
 import client, { Avatar, Color, TitleBar } from '@doubledutch/rn-client'
 import colors from './colors'
-import FirebaseConnector from '@doubledutch/firebase-connector'
-import firebase from 'firebase'
-const fbc = FirebaseConnector(client, 'assassins')
-const db = Database(fbc)
+import {provideFirebaseConnectorToReactComponent} from '@doubledutch/firebase-connector'
+import firebase from 'firebase/app'
 
 const defaultKillMethods = [
   {title: '📇', description: 'You accept a business card from the target agent', instructions: 'Hand your business card to the target'},
@@ -46,10 +42,12 @@ const defaultKillMethods = [
   {title: '📸', description: 'The target agent takes a photo with you and him/herself', instructions: 'Take a photo with yourself and the target'}
 ]
 
-export default class HomeView extends PureComponent {
-  constructor() {
-    super()
+class HomeView extends PureComponent {
+  constructor(props) {
+    super(props)
 
+    this.s = createStyles(props)
+    this.db = Database(props.fbc)
     this.state = {
       players: [],
       targets: null,
@@ -60,41 +58,46 @@ export default class HomeView extends PureComponent {
       tab: 1
     }
 
-    this.signin = db.signin().then(() => this.setState({isSignedIn: true}))
+    this.signin = this.db.signin().then(() => this.setState({isSignedIn: true}))
   }
 
   componentDidMount() {
-    this.signin.then(() => {
-      db.database.private.adminableUserRef('adminToken').on('value', async data => {
-        const longLivedToken = data.val()
-        if (longLivedToken) {
-          console.log('Attendee appears to be admin.  Logging out and logging in w/ admin token.')
-          await firebase.auth().signOut()
-          client.longLivedToken = longLivedToken
-          await fbc.signinAdmin()
-          console.log('Re-logged in as admin')
-          this.setState({isAdmin: true})
+    client.getPrimaryColor().then(primaryColor => this.setState({primaryColor}))
+    client.getCurrentUser().then(currentUser => {
+      this.setState({currentUser})
+      this.signin.then(() => {
+        const wireListeners = () => {
+          this.db.watchTargets(this)
+          this.db.watchKills(this)
+          this.db.watchPlayers(this)
+          this.db.watchKillMethods(this)
+          // Small hack at the end to know when initial data is all loaded.
+          this.db.database.public.adminRef().once('value', () => this.setState({isLoaded: true}))
         }
-        wireListeners()
-      })
 
-      const wireListeners = () => {
-        db.watchTargets(this)
-        db.watchKills(this)
-        db.watchPlayers(this)
-        db.watchKillMethods(this)
-        // Small hack at the end to know when initial data is all loaded.
-        db.database.public.adminRef().once('value', () => this.setState({isLoaded: true}))
-      }
+        this.db.database.private.adminableUserRef('adminToken').on('value', async data => {
+          const longLivedToken = data.val()
+          if (longLivedToken) {
+            console.log('Attendee appears to be admin.  Logging out and logging in w/ admin token.')
+            await firebase.auth().signOut()
+            client.longLivedToken = longLivedToken
+            await this.props.fbc.signinAdmin()
+            console.log('Re-logged in as admin')
+            this.setState({isAdmin: true})
+          }
+          wireListeners()
+        })
+  
+      })
     })
   }
 
   render() {
-    const {isAdmin, isAdminExpanded, isLoaded, killsBy, killMethods, players, targets} = this.state
-    const me = players.find(u => u.id === client.currentUser.id)
-    const height = Dimensions.get('window').height
+    const {currentUser, isAdmin, isAdminExpanded, isLoaded, killMethods, players, primaryColor, targets} = this.state
+    if (!currentUser || !primaryColor) return null
+    const me = players.find(u => u.id === currentUser.id)
     return (
-      <View style={s.container}>
+      <View style={this.s.container}>
         <TitleBar title="Ice Breaker Espionage" client={client} signin={this.signin} />
         { isAdmin && <View style={isAdminExpanded ? {flex:1} : null}>
             <Button
@@ -104,7 +107,7 @@ export default class HomeView extends PureComponent {
             <Admin
               isExpanded={isAdminExpanded}
               targets={targets}
-              db={db}
+              db={this.db}
               markAssassinated={this._adminMarkAssassinated} />
           </View>
         }
@@ -116,7 +119,7 @@ export default class HomeView extends PureComponent {
                   ? targets
                     ? this.renderMain(me)
                     : <View style={s.centerChildren}><CrossHairs size={200} text="AWAITING YOUR FIRST TARGET" rotate={true} /></View>
-                  : <Welcome db={db} killMethods={killMethods} />
+                  : <Welcome db={this.db} killMethods={killMethods} currentUser={currentUser} />
                 : targets
                   ? <View style={s.centerChildren}><CrossHairs size={200} text="GAME ALREADY IN PROGRESS" rotate={true} /></View>
                   : <View style={s.centerChildren}><CrossHairs size={200} text="Nothing to see here, civilian..." rotate={true} /></View>
@@ -125,7 +128,6 @@ export default class HomeView extends PureComponent {
       </View>
     )
   }
-
 
   renderPhoto = (height) => {
     if (height > 700){
@@ -151,8 +153,8 @@ export default class HomeView extends PureComponent {
     }
   }
 
-  renderMain(me) {
-    const {justKilled, killed, killMethods, kills, killsBy, showScanner} = this.state
+  renderMain() {
+    const {currentUser, justKilled, killed, killMethods, kills, killsBy, showScanner} = this.state
     let {tab} = this.state
 
     const whoAssassinatedMe = this._whoAssassinatedMe()
@@ -166,16 +168,16 @@ export default class HomeView extends PureComponent {
     if (alive.length <= 1) tab = 2
 
     return (
-      <View style={s.container}>
-        <View style={s.container}>
+      <View style={this.s.container}>
+        <View style={this.s.container}>
           {
-            tab === 0 ? <View style={s.container}>
+            tab === 0 ? <View style={this.s.container}>
               <Header text="Secret Code" />
-              <View style={[s.section, s.container]}>
+              <View style={[s.section, this.s.container]}>
                 <Text style={{fontSize: 16}}>If you are eliminated, the target agent will scan this secret code</Text>
                 <View style={s.qrcode}>
                   <QRCode
-                    value={JSON.stringify(client.currentUser.id)}
+                    value={JSON.stringify(currentUser.id)}
                     size={this.renderCode(height)}
                     bgColor={"#000000"}
                     fgColor={"#ffffff"} />
@@ -184,7 +186,7 @@ export default class HomeView extends PureComponent {
             </View>
             : tab === 1
               ? whoAssassinatedMe
-                ? <View style={s.container}>
+                ? <View style={this.s.container}>
                     <Header text="Mission Failed" />
                       <View style={s.section}>
                         <Box>
@@ -192,13 +194,13 @@ export default class HomeView extends PureComponent {
                           { this.renderDebriefForPlayer(whoAssassinatedMe, 60) }
                         </Box>
                       </View>
-                    { (killsBy[client.currentUser.id] ||[]).length > 0 && <View style={s.container}>
+                    { (killsBy[currentUser.id] ||[]).length > 0 && <View style={this.s.container}>
                         <Header text="Mission Debrief" />
-                        <ScrollView style={s.container}>
+                        <ScrollView style={this.s.container}>
                           <View style={s.section}>
                             <Box>
                               <Text style={{marginBottom:10}}>You eliminated:</Text>
-                              { killsBy[client.currentUser.id].map(id => this.renderDebriefForPlayer(this.state.players.find(p => p.id===id), 40)) }
+                              { killsBy[currentUser.id].map(id => this.renderDebriefForPlayer(this.state.players.find(p => p.id===id), 40)) }
                               <Text style={{marginBottom:10, marginTop:20}}>You were eliminated by:</Text>
                               { this.renderDebriefForPlayer(whoAssassinatedMe, 40) }
                             </Box>
@@ -220,10 +222,10 @@ export default class HomeView extends PureComponent {
                       <Button text="CANCEL" onPress={() => this.setState({showScanner:false})} />
                     </View>
                   : justKilled
-                    ? <View style={s.container}>
+                    ? <View style={this.s.container}>
                         <Header text="Mission Accomplished" />
-                        <View style={[s.container, s.section]}>
-                          <View style={s.container}>
+                        <View style={[this.s.container, s.section]}>
+                          <View style={this.s.container}>
                             <Box>
                               <Text style={{fontSize:18, marginBottom:15}}>You eliminated:</Text>
                               { this.renderDebriefForPlayer(justKilled, 60) }
@@ -232,9 +234,9 @@ export default class HomeView extends PureComponent {
                           <Button text="NEXT MISSION" onPress={() => this.setState({justKilled: null})} />
                         </View>
                       </View>
-                    : <View style={s.container}>
+                    : <View style={this.s.container}>
                         <Header text="Target Acquired" />
-                        <View style={[s.section, s.container]}>
+                        <View style={[s.section, this.s.container]}>
                           <Box style={{flex: 1, alignItems: 'center', padding: 20, justifyContent: 'space-between'}}>
                             <Avatar size={this.renderPhoto(height)} user={yourTarget} client={client} />
                             <View>
@@ -249,7 +251,7 @@ export default class HomeView extends PureComponent {
                           <Button text="CONFIRM MISSION COMPLETE" onPress={this._showScanner}><TabImage type="secret_code" selected={true} /></Button>
                         </View>
                       </View>
-            : <View style={s.container}>
+            : <View style={this.s.container}>
                 { alive.length === 1
                     ? <View>
                         <Header text="Winner" />
@@ -259,7 +261,7 @@ export default class HomeView extends PureComponent {
                           <Text style={{fontSize:20, marginBottom:10}}>{this.truncateName(alive[0])}</Text>
                         </View>
                       </View>
-                    : <View style={s.container}>
+                    : <View style={this.s.container}>
                         <Header text="Mission Updates" />
                         {
                           kills.length > 0
@@ -277,7 +279,7 @@ export default class HomeView extends PureComponent {
               </View>
           }
         </View>
-        { alive.length > 1 && <View style={s.tabs}>
+        { alive.length > 1 && <View style={this.s.tabs}>
             { !isGameOverForMe && <TouchableOpacity style={s.tab} onPress={() => this.setState({tab:0})}>
                 <TabImage type="secret_code" selected={tab===0} />
                 <Text style={[s.tabText, tab===0 ? {color:colors.neon} : null]}>Secret Code</Text>
@@ -368,7 +370,7 @@ export default class HomeView extends PureComponent {
     })
 
     return (<FlatList
-      style={[s.section, s.container]}
+      style={[s.section, this.this.s.container]}
       data={players}
       extraData={kills}
       keyExtractor={this._keyExtractor}
@@ -426,12 +428,12 @@ export default class HomeView extends PureComponent {
   }
 
   _markAssassinated(player, assassinId) {
-    if (!assassinId) assassinId = client.currentUser.id
-    db.addKill({ by: assassinId, target: player.id })
+    if (!assassinId) assassinId = this.state.currentUser.id
+    this.db.addKill({ by: assassinId, target: player.id })
   }
 
   _whoAssassinatedMe() {
-    const assassinId = Object.keys(this.state.killsBy).find(id => this.state.killsBy[id].includes(client.currentUser.id))
+    const assassinId = Object.keys(this.state.killsBy).find(id => this.state.killsBy[id].includes(this.state.currentUser.id))
     if (assassinId) return this.state.players.find(u => u.id === assassinId)
     return null
   }
@@ -444,9 +446,9 @@ export default class HomeView extends PureComponent {
 
   _yourTarget() {
     if (!this.state.targets) return null
-    const killed = db.getKilled(this.state.killsBy)
-    let targetId = this.state.targets[client.currentUser.id]
-    while (client.currentUser.id !== targetId && killed[targetId]) targetId = this.state.targets[targetId]
+    const killed = this.db.getKilled(this.state.killsBy)
+    let targetId = this.state.targets[this.state.currentUser.id]
+    while (this.state.currentUser.id !== targetId && killed[targetId]) targetId = this.state.targets[targetId]
     return this.state.players.find(u => u.id === targetId)
   }
 
@@ -459,7 +461,7 @@ export default class HomeView extends PureComponent {
         const scannedUserId = JSON.parse(code.data)
         const yourTarget = this._yourTarget()
         if (yourTarget && yourTarget.id === scannedUserId) {
-          this._markAssassinated(yourTarget, client.currentUser.id)
+          this._markAssassinated(yourTarget, this.state.currentUser.id)
           this.setState({justKilled: yourTarget})
           Alert.alert('Success!', 'Good job, and watch your back!')
         } else {
@@ -477,7 +479,7 @@ export default class HomeView extends PureComponent {
       .map(assassinId => ({ assassinId, targetId: this.state.targets[assassinId] }))
       .reduce((reverseTargets, {assassinId, targetId}) => { reverseTargets[targetId] = assassinId; return reverseTargets }, {})
 
-    const killed = db.getKilled(this.state.killsBy)
+    const killed = this.db.getKilled(this.state.killsBy)
     let assassinId = reverseTargets[playerId]
     while (assassinId !== playerId && killed[assassinId]) assassinId = reverseTargets[assassinId]
     if (assassinId === playerId) return null
@@ -485,20 +487,26 @@ export default class HomeView extends PureComponent {
   }
 }
 
+export default provideFirebaseConnectorToReactComponent(client, 'assassins', (props, fbc) => <HomeView {...props} fbc={fbc} />, PureComponent)
+
 const TabImage = props => (<Image
   source={{uri: `https://dml2n2dpleynv.cloudfront.net/extensions/espionage/${props.type}_${props.selected ? 'green' : 'white'}.png`}}
-  style={s.tabImage} />)
+  style={s.tabImage} />
+)
 
-const s = ReactNative.StyleSheet.create({
+const createStyles = ({primaryColor}) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray, // '#4b4a57',
+    backgroundColor: new Color({...new Color(primaryColor).limitLightness(0.3).hsv(), s: 0.15}).rgbString(),
   },
   tabs: {
     flexDirection: 'row',
     height: 60,
-    backgroundColor: colors.lightGray
+    backgroundColor: new Color({...new Color(primaryColor).limitLightness(0.4).hsv(), s: 0.15}).rgbString()
   },
+})
+
+const s = StyleSheet.create({
   tab: {
     flex: 1,
     padding: 7,
@@ -606,20 +614,10 @@ const s = ReactNative.StyleSheet.create({
   alignCenter: {
     alignItems: 'center'
   },
-  scannerContainer: {
-    height: 100, width: 100,
-    backgroundColor: client.primaryColor,
-    justifyContent: 'center'
-  },
   qrcode: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center'
-  },
-  killMethod: {
-    padding: 10,
-    marginVertical: 5,
-    backgroundColor: new Color({...(new Color(client.primaryColor)).hsv(), s: 0.4, v: 1.0}).rgbString()    
   },
   killMethodTitle: {
     fontSize: 24,

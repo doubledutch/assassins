@@ -15,25 +15,25 @@
  */
 
 import React, { PureComponent } from 'react'
-import { Animated, Easing, StyleSheet, View } from 'react-native'
+import { Animated, Easing, View } from 'react-native'
+import { Color } from '@doubledutch/rn-client'
 import colors from './colors'
 
-const borderRatio = 0.075
 export default class Smiley extends PureComponent {
   render() {
-    const {size, style} = this.props
-    const color = this.props.color || colors.neon
+    const {primaryColor, size, style} = this.props
     const eyeRadius = size * 0.075
     const smileWidth = size * 0.57
     const smileRadius = smileWidth / 2
+    const gray = new Color({...primaryColor.limitLightness(0.3).hsv(), s: 0.15}).rgbString()
     return (
       <View style={[{height: size, width: size, borderRadius:size/2, backgroundColor:'white'}, style]}>
         <View style={{flex:1, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingTop:size*0.12, paddingHorizontal:size*.17}}>
-          <View style={{width:eyeRadius*2, height:eyeRadius*2, borderRadius:eyeRadius, backgroundColor:colors.gray}} />
-          <View style={{width:eyeRadius*2, height:eyeRadius*2, borderRadius:eyeRadius, backgroundColor:colors.gray}} />
+          <View style={{width:eyeRadius*2, height:eyeRadius*2, borderRadius:eyeRadius, backgroundColor:gray}} />
+          <View style={{width:eyeRadius*2, height:eyeRadius*2, borderRadius:eyeRadius, backgroundColor:gray}} />
         </View>
         <View style={{flex:1, alignItems: 'center'}}>
-          <View style={{borderColor:colors.gray, borderWidth:size*0.062, marginTop:size*.03, backgroundColor:colors.neon, width:smileWidth, height:smileWidth/2, borderBottomLeftRadius:smileRadius, borderBottomRightRadius:smileRadius}} />
+          <View style={{borderColor:gray, borderWidth:size*0.062, marginTop:size*.03, backgroundColor:colors.neon, width:smileWidth, height:smileWidth/2, borderBottomLeftRadius:smileRadius, borderBottomRightRadius:smileRadius}} />
         </View>
       </View>
     )

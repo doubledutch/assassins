@@ -15,8 +15,6 @@
  */
 
 export default function Database(fbc) {
-  fbc.initializeAppWithSimpleBackend()
-
   const killMethodsRef = fbc.database.public.adminRef('killMethods')
   const killsRef = fbc.database.public.allRef('kills')
   const targetsRef = fbc.database.public.adminRef('targets')
