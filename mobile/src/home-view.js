@@ -58,7 +58,7 @@ class HomeView extends PureComponent {
       tab: 1
     }
 
-    this.signin = this.db.signin().then(() => this.setState({isSignedIn: true}))
+    this.signin = this.db.signin()
   }
 
   componentDidMount() {
