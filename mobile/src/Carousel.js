@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,19 +16,23 @@
 
 import React, { PureComponent } from 'react'
 import ReactNative, {
-  Platform, StyleSheet, Text as RNText, TouchableOpacity, View
+  Platform,
+  StyleSheet,
+  Text as RNText,
+  TouchableOpacity,
+  View,
 } from 'react-native'
+import client, { Color } from '@doubledutch/rn-client'
 import Box from './Box'
 import Button from './Button'
 import Text from './Text'
-import client, { Color } from '@doubledutch/rn-client'
 import colors from './colors'
 
 export default class Welcome extends PureComponent {
   constructor() {
     super()
     this.state = {
-      step: 0
+      step: 0,
     }
   }
 
@@ -41,48 +45,53 @@ export default class Welcome extends PureComponent {
           <Text style={s.text}>{texts[step]}</Text>
         </View>
         <View style={s.carouselDots}>
-          { texts.map((t, i) => <View key={i} style={[s.carouselDot, i === step ? s.carouselDotFilled : null]} />) }            
+          {texts.map((t, i) => (
+            <View key={i} style={[s.carouselDot, i === step ? s.carouselDotFilled : null]} />
+          ))}
         </View>
-        { step > 0 && <TouchableOpacity style={[s.arrow, s.arrowLeft]} onPress={this._prev}>
+        {step > 0 && (
+          <TouchableOpacity style={[s.arrow, s.arrowLeft]} onPress={this._prev}>
             <RNText style={s.arrowText}>←</RNText>
           </TouchableOpacity>
-        }
-        { step < texts.length - 1 && <TouchableOpacity style={[s.arrow, s.arrowRight]} onPress={this._next}>
+        )}
+        {step < texts.length - 1 && (
+          <TouchableOpacity style={[s.arrow, s.arrowRight]} onPress={this._next}>
             <RNText style={s.arrowText}>→</RNText>
           </TouchableOpacity>
-        }
+        )}
       </Box>
     )
   }
 
   moveStep(increment) {
     const step = this.state.step + increment
-    this.setState({step})
-    this.props.onStepChange && this.props.onStepChange({step, stepCount: this.props.texts.length})
+    this.setState({ step })
+    this.props.onStepChange && this.props.onStepChange({ step, stepCount: this.props.texts.length })
   }
 
   _next = () => this.moveStep(1)
+
   _prev = () => this.moveStep(-1)
 }
 
 const carouselDotSize = 10
 const s = StyleSheet.create({
   textContainer: {
-    paddingVertical: 4
+    paddingVertical: 4,
   },
   text: {
-    fontSize: 16
+    fontSize: 16,
   },
   carousel: {
     margin: 7,
     padding: 7,
     borderRadius: 5,
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   carouselDots: {
     flexDirection: 'row',
     padding: 6,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   carouselDot: {
     borderRadius: carouselDotSize / 2,
@@ -90,10 +99,10 @@ const s = StyleSheet.create({
     height: carouselDotSize,
     borderColor: colors.neon,
     borderWidth: 1,
-    marginHorizontal: 3
+    marginHorizontal: 3,
   },
   carouselDotFilled: {
-    backgroundColor: colors.neon
+    backgroundColor: colors.neon,
   },
   arrow: {
     position: 'absolute',
@@ -105,6 +114,6 @@ const s = StyleSheet.create({
   arrowRight: { right: 3 },
   arrowText: {
     color: colors.neon,
-    fontSize: 22
-  }
+    fontSize: 22,
+  },
 })

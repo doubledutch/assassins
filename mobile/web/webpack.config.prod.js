@@ -1,19 +1,19 @@
 const webpack = require('webpack')
 const devConfig = require('./webpack.config.dev')
-var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 const prodConfig = {
   target: 'web',
   cache: false,
   debug: false,
-  devtool: 'source-map'
+  devtool: 'source-map',
 }
 Object.assign(prodConfig, devConfig)
 
 prodConfig.externals = {
-  "react": "window.React",
-  "react-dom": "window.ReactDom",
-  "react-native": "window.ReactNative"
+  react: 'window.React',
+  'react-dom': 'window.ReactDom',
+  'react-native': 'window.ReactNative',
 }
 
 prodConfig.plugins = [
@@ -24,24 +24,23 @@ prodConfig.plugins = [
   //     NODE_ENV: JSON.stringify('production')
   //   }
   // }),
-  new webpack.NormalModuleReplacementPlugin(/\.\/ActionSheet$/,  function(resource) {
-    resource.request = __dirname + '/../ActionSheet.web.js'
+  new webpack.NormalModuleReplacementPlugin(/\.\/ActionSheet$/, resource => {
+    resource.request = `${__dirname}/../ActionSheet.web.js`
   }),
-  new webpack.NormalModuleReplacementPlugin(/react-native-action-sheet$/,  function(resource) {
-    resource.request = __dirname + '/../ActionSheet.web.js'
+  new webpack.NormalModuleReplacementPlugin(/react-native-action-sheet$/, resource => {
+    resource.request = `${__dirname}/../ActionSheet.web.js`
   }),
-  new webpack.NormalModuleReplacementPlugin(/^moment$/,  function(resource) {
-   resource.request = __dirname + '/../resolver-overloads/moment/min/moment-with-locales.min.js'
+  new webpack.NormalModuleReplacementPlugin(/^moment$/, resource => {
+    resource.request = `${__dirname}/../resolver-overloads/moment/min/moment-with-locales.min.js`
   }),
-  new webpack.NormalModuleReplacementPlugin(/^moment\/min\/moment-with-locales.min$/,  function(resource) {
-   resource.request = __dirname + '/../resolver-overloads/moment/min/moment-with-locales.min.js'
+  new webpack.NormalModuleReplacementPlugin(/^moment\/min\/moment-with-locales.min$/, resource => {
+    resource.request = `${__dirname}/../resolver-overloads/moment/min/moment-with-locales.min.js`
   }),
-  new webpack.DefinePlugin({
-  }),
+  new webpack.DefinePlugin({}),
   new webpack.optimize.DedupePlugin(),
   new webpack.optimize.OccurrenceOrderPlugin(),
   new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false } }),
-  //new BundleAnalyzerPlugin()
+  // new BundleAnalyzerPlugin()
 ]
 
 module.exports = prodConfig

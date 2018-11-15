@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,12 +29,12 @@ export default class Admin extends PureComponent {
       targets: null,
       kills: [],
       killsBy: {},
-      killed: {}
+      killed: {},
     }
   }
 
   componentDidMount() {
-    const {db} = this.props
+    const { db } = this.props
     db.watchPlayers(this)
     db.watchTargets(this)
     db.watchKills(this)
@@ -42,61 +42,62 @@ export default class Admin extends PureComponent {
 
   render() {
     const { players, targets } = this.state
-    return (
-      this.props.isExpanded
-      ? <View style={s.main}>
-          { targets
-            ? <View>
-                <Text style={s.text}>Game already started with {players.length} players</Text>
-                <Button onPress={this._abortGame} text="Abort game" />
-              </View>
-            : players.length > 1
-              ? <Button onPress={this._startGame} text={`Start game with ${players.length} players`} />
-              : <Button disabled={true} text="Add more players via CMS" />
-          }
-          <View style={s.main}>
-            <FlatList
-              data={players}
-              extraData={this.state}
-              keyExtractor={this._keyExtractor}
-              renderItem={this._renderListPlayer}
-            />
+    return this.props.isExpanded ? (
+      <View style={s.main}>
+        {targets ? (
+          <View>
+            <Text style={s.text}>Game already started with {players.length} players</Text>
+            <Button onPress={this._abortGame} text="Abort game" />
           </View>
+        ) : players.length > 1 ? (
+          <Button onPress={this._startGame} text={`Start game with ${players.length} players`} />
+        ) : (
+          <Button disabled text="Add more players via CMS" />
+        )}
+        <View style={s.main}>
+          <FlatList
+            data={players}
+            extraData={this.state}
+            keyExtractor={this._keyExtractor}
+            renderItem={this._renderListPlayer}
+          />
         </View>
-      : null
-    )
+      </View>
+    ) : null
   }
 
   _keyExtractor = p => p.id
 
-  _renderListPlayer = ({item}) => (
+  _renderListPlayer = ({ item }) => (
     <View style={s.listPlayer}>
-      { this.state.targets
-        ? (!this.state.killed[item.id] && <Button style={s.remove} text="☠️" onPress={() => this.props.markAssassinated(item)} />)
-        : <Button style={s.remove} text="❌️" onPress={() => this._removePlayer(item)} />
-      }
+      {this.state.targets ? (
+        !this.state.killed[item.id] && (
+          <Button style={s.remove} text="☠️" onPress={() => this.props.markAssassinated(item)} />
+        )
+      ) : (
+        <Button style={s.remove} text="❌️" onPress={() => this._removePlayer(item)} />
+      )}
       <Avatar user={item} size={40} client={client} />
       <Text style={s.listPlayerText}>{this.truncateName(item)}</Text>
     </View>
   )
 
   _removePlayer = player => {
-    Alert.alert(
-      `Remove ${this.truncateName(player)}?`,
-      'This can only be undone from the CMS.',
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {text: 'Remove', onPress: () => {
+    Alert.alert(`Remove ${this.truncateName(player)}?`, 'This can only be undone from the CMS.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        onPress: () => {
           this.props.db.removePlayer(player)
-        }},
-      ]
-    )
+        },
+      },
+    ])
   }
 
-  truncateName = (user) => {
-    var name = user.firstName + " " + user.lastName
+  truncateName = user => {
+    let name = `${user.firstName} ${user.lastName}`
     if (name.length > 20) {
-      name = name.substring(0, 20) + "..."
+      name = `${name.substring(0, 20)}...`
     }
     return name
   }
@@ -109,7 +110,7 @@ export default class Admin extends PureComponent {
     let currentPlayer = firstPlayer
     while (players.length) {
       const targetIndex = Math.floor(Math.random() * players.length)
-      const [ targetPlayer ] = players.splice(targetIndex, 1)
+      const [targetPlayer] = players.splice(targetIndex, 1)
       targets[currentPlayer.id] = targetPlayer.id
       currentPlayer = targetPlayer
     }
@@ -120,45 +121,44 @@ export default class Admin extends PureComponent {
   }
 
   _abortGame = () => {
-    const {db} = this.props
-    Alert.alert(
-      'Abort Game',
-      'Are you sure?',
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {text: 'OK', onPress: () => {
+    const { db } = this.props
+    Alert.alert('Abort Game', 'Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'OK',
+        onPress: () => {
           db.removeTargets()
           db.removeKills()
-        }},
-      ]
-    )
+        },
+      },
+    ])
   }
 }
 
 const s = StyleSheet.create({
   main: {
     flex: 1,
-    padding: 5
+    padding: 5,
   },
   text: {
-    paddingVertical: 10
+    paddingVertical: 10,
   },
   buttonText: {
-    color: 'blue'
+    color: 'blue',
   },
   list: {
-    flex: 1
+    flex: 1,
   },
   listPlayer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 5
+    padding: 5,
   },
   listPlayerText: {
     fontSize: 18,
-    marginLeft: 5
+    marginLeft: 5,
   },
   remove: {
-    marginRight: 10
-  }
+    marginRight: 10,
+  },
 })
