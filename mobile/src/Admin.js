@@ -15,7 +15,7 @@
  */
 
 import React, { PureComponent } from 'react'
-import { Alert, StyleSheet, TouchableOpacity, View, FlatList } from 'react-native'
+import { Alert, StyleSheet, TouchableOpacity, View, FlatList, translate as t } from 'react-native'
 import client, { Avatar, Color } from '@doubledutch/rn-client'
 import Button from './Button'
 import Text from './Text'
@@ -46,13 +46,13 @@ export default class Admin extends PureComponent {
       <View style={s.main}>
         {targets ? (
           <View>
-            <Text style={s.text}>Game already started with {players.length} players</Text>
-            <Button onPress={this._abortGame} text="Abort game" />
+            <Text style={s.text}>{t('gameStarted', { players: players.length })}</Text>
+            <Button onPress={this._abortGame} text={t('abort')} />
           </View>
         ) : players.length > 1 ? (
-          <Button onPress={this._startGame} text={`Start game with ${players.length} players`} />
+          <Button onPress={this._startGame} text={t('startGame', { players: players.length })} />
         ) : (
-          <Button disabled text="Add more players via CMS" />
+          <Button disabled text={t('addMorePlayers')} />
         )}
         <View style={s.main}>
           <FlatList
@@ -83,10 +83,10 @@ export default class Admin extends PureComponent {
   )
 
   _removePlayer = player => {
-    Alert.alert(`Remove ${this.truncateName(player)}?`, 'This can only be undone from the CMS.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('removePlayer', { player: this.truncateName(player) }), t('undoneCMS'), [
+      { text: t('cancel'), style: 'cancel' },
       {
-        text: 'Remove',
+        text: t('remove'),
         onPress: () => {
           this.props.db.removePlayer(player)
         },
@@ -122,8 +122,8 @@ export default class Admin extends PureComponent {
 
   _abortGame = () => {
     const { db } = this.props
-    Alert.alert('Abort Game', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('abortGame'), t('sure'), [
+      { text: t('cancel'), style: 'cancel' },
       {
         text: 'OK',
         onPress: () => {
