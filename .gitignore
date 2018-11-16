@@ -40,3 +40,6 @@ tmp
 build
 
 *.xcuserdatad
+
+.gradle
+.idea
