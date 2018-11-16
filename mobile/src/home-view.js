@@ -84,7 +84,7 @@ class HomeView extends PureComponent {
   componentDidMount() {
     client.getPrimaryColor().then(primaryColor => {
       this.setState({ primaryColor })
-      this.s = createStyles({primaryColor})
+      this.s = createStyles({ primaryColor })
     })
     client.getCurrentUser().then(currentUser => {
       this.setState({ currentUser })
@@ -197,7 +197,16 @@ class HomeView extends PureComponent {
   }
 
   renderMain() {
-    const { currentUser, justKilled, killed, killMethods, kills, killsBy, primaryColor, showScanner } = this.state
+    const {
+      currentUser,
+      justKilled,
+      killed,
+      killMethods,
+      kills,
+      killsBy,
+      primaryColor,
+      showScanner,
+    } = this.state
     let { tab } = this.state
 
     const whoAssassinatedMe = this._whoAssassinatedMe()
