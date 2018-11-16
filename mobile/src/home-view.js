@@ -67,7 +67,6 @@ class HomeView extends PureComponent {
   constructor(props) {
     super(props)
 
-    this.s = createStyles(props)
     this.db = Database(props.fbc)
     this.state = {
       players: [],
@@ -84,7 +83,10 @@ class HomeView extends PureComponent {
 
   componentDidMount() {
     const { fbc } = this.props
-    client.getPrimaryColor().then(primaryColor => this.setState({ primaryColor }))
+    client.getPrimaryColor().then(primaryColor => {
+      this.setState({ primaryColor })
+      this.s = createStyles({ primaryColor })
+    })
     client.getCurrentUser().then(currentUser => {
       this.setState({ currentUser })
       this.signin.then(() => {
@@ -205,7 +207,16 @@ class HomeView extends PureComponent {
   }
 
   renderMain() {
-    const { currentUser, justKilled, killed, killMethods, kills, killsBy, showScanner } = this.state
+    const {
+      currentUser,
+      justKilled,
+      killed,
+      killMethods,
+      kills,
+      killsBy,
+      primaryColor,
+      showScanner,
+    } = this.state
     let { tab } = this.state
 
     const whoAssassinatedMe = this._whoAssassinatedMe()
@@ -335,7 +346,7 @@ class HomeView extends PureComponent {
                 <View>
                   <Header text="Winner" />
                   <View style={{ alignItems: 'center' }}>
-                    <SmileyRain style={{ opacity: 0.9 }} />
+                    <SmileyRain style={{ opacity: 0.9 }} primaryColor={primaryColor} />
                     <Avatar
                       size={100}
                       user={alive[0]}
@@ -450,7 +461,7 @@ class HomeView extends PureComponent {
         </Text>
       </View>
     )
-    const { players } = this.state
+    const { players, primaryColor } = this.state
     const killer = players.find(u => u.id === item.by)
     const killed = players.find(u => u.id === item.target)
     return (
@@ -464,7 +475,7 @@ class HomeView extends PureComponent {
             paddingVertical: 5,
           }}
         >
-          <Smiley size={30} />
+          <Smiley size={30} primaryColor={primaryColor} />
           <Text>Eliminated</Text>
         </View>
         {renderPlayer(killed)}
@@ -487,7 +498,7 @@ class HomeView extends PureComponent {
 
     return (
       <FlatList
-        style={[s.section, this.this.s.container]}
+        style={[s.section, this.s.container]}
         data={players}
         extraData={kills}
         keyExtractor={this._keyExtractor}

@@ -25,7 +25,10 @@ export default class Smiley extends PureComponent {
     const eyeRadius = size * 0.075
     const smileWidth = size * 0.57
     const smileRadius = smileWidth / 2
-    const gray = new Color({ ...primaryColor.limitLightness(0.3).hsv(), s: 0.15 }).rgbString()
+    const gray = new Color({
+      ...new Color(primaryColor).limitLightness(0.3).hsv(),
+      s: 0.15,
+    }).rgbString()
     return (
       <View
         style={[
@@ -110,6 +113,7 @@ export class SmileyRain extends PureComponent {
   }
 
   render() {
+    const { primaryColor } = this.props
     const slant = this.props.slant || 0.3
     const { width, height } = this.state
     return (
@@ -142,7 +146,7 @@ export class SmileyRain extends PureComponent {
                 ],
               }}
             >
-              <Smiley size={this.props.size || 30} />
+              <Smiley size={this.props.size || 30} primaryColor={primaryColor} />
             </Animated.View>
           ))}
       </View>
