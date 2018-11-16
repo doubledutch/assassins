@@ -83,6 +83,7 @@ class HomeView extends PureComponent {
   }
 
   componentDidMount() {
+    const { fbc } = this.props
     client.getPrimaryColor().then(primaryColor => this.setState({ primaryColor }))
     client.getCurrentUser().then(currentUser => {
       this.setState({ currentUser })
@@ -94,22 +95,32 @@ class HomeView extends PureComponent {
           this.db.watchKillMethods(this)
           // Small hack at the end to know when initial data is all loaded.
           this.db.database.public.adminRef().once('value', () => this.setState({ isLoaded: true }))
+          setTimeout(() => this.setState({ isLoaded: true }), 2000)
         }
 
-        this.db.database.private.adminableUserRef('adminToken').on('value', async data => {
+        this.db.database.private.adminableUserRef('adminToken').on('value', data => {
           const longLivedToken = data.val()
           if (longLivedToken) {
-            console.log('Attendee appears to be admin.  Logging out and logging in w/ admin token.')
-            await firebase.auth().signOut()
-            client.longLivedToken = longLivedToken
-            await this.props.fbc.signinAdmin()
-            console.log('Re-logged in as admin')
-            this.setState({ isAdmin: true })
+            // Attendee appears to be an admin. Log out and log in w/ admin token.
+            const switchToAdmin = async () => {
+              await firebase.auth().signOut()
+              client.longLivedToken = longLivedToken
+              await fbc.signinAdmin()
+              // We are now logged in as admin
+              this.setState({ isAdmin: true })
+              wireListeners()
+            }
+            switchToAdmin()
+          } else {
+            wireListeners()
           }
-          wireListeners()
         })
       })
     })
+  }
+
+  componentWillUnmount() {
+    firebase.auth().signOut()
   }
 
   render() {
