@@ -95,7 +95,6 @@ class HomeView extends PureComponent {
           this.db.watchKillMethods(this)
           // Small hack at the end to know when initial data is all loaded.
           this.db.database.public.adminRef().once('value', () => this.setState({ isLoaded: true }))
-          setTimeout(() => this.setState({ isLoaded: true }), 2000)
         }
 
         this.db.database.private.adminableUserRef('adminToken').on('value', data => {
