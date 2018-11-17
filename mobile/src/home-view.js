@@ -85,6 +85,7 @@ class HomeView extends PureComponent {
   }
 
   componentDidMount() {
+    const { fbc } = this.props
     client.getPrimaryColor().then(primaryColor => {
       this.setState({ primaryColor })
       this.s = createStyles({ primaryColor })
