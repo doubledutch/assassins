@@ -15,7 +15,7 @@
  */
 
 import React, { PureComponent } from 'react'
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View, translate as t } from 'react-native'
 import Box from './Box'
 import Button from './Button'
 import Header from './Header'
@@ -24,12 +24,7 @@ import Carousel from './Carousel'
 import Smiley from './Smiley'
 import { killMethodImages } from './images'
 
-const helpTexts = [
-  "We've detected some target agents in your area. Your mission, should you choose to accept it, is to avoid detection and eliminate the rival agents.",
-  "Once you accept your mission, you will choose your method that target agents must use when attempting to eliminate you from the mission. After this selection, you'll be sent your first target.",
-  "After eliminating the target agent, mark your victory by scanning the agent's secret code with your phone. Your next target will be assigned after this confirmation.",
-  'Are you ready?',
-]
+const helpTexts = [t('helpText1'), t('helpText2'), t('helpText3'), t('helpText4')]
 
 export default class Welcome extends PureComponent {
   state = {
@@ -45,12 +40,12 @@ export default class Welcome extends PureComponent {
         <View style={s.buttonBottomContainer}>
           <View>
             <Text style={s.welcome}>
-              Welcome, Agent {currentUser.lastName || currentUser.firstName}
+              {t('welcomeAgent', { name: currentUser.lastName || currentUser.firstName })}
             </Text>
             <Carousel texts={helpTexts} onStepChange={this._onStepChange} style={s.carousel} />
           </View>
           <Button
-            text="ACCEPT MISSION"
+            text={t('acceptMission')}
             onPress={this._accept}
             disabled={!canAccept}
             style={s.bottomButton}
@@ -72,9 +67,9 @@ export default class Welcome extends PureComponent {
       <ScrollView ref={sv => (this.scrollView = sv)}>
         <View style={s.buttonBottomContainer}>
           <View>
-            <Header text="Select Elimination Method" />
+            <Header text={t('selectMethod')} />
             <View style={s.killMethodsContainer}>
-              <Text>Choose a method that target agents must use to eliminate you.</Text>
+              <Text>{t('chooseMethod')}</Text>
               <View style={s.killMethods}>
                 {killMethods.map((m, i) => (
                   <TouchableOpacity
@@ -94,7 +89,7 @@ export default class Welcome extends PureComponent {
             </View>
           </View>
           <Button
-            text="NEXT"
+            text={t('next')}
             style={s.bottomButton}
             onPress={this._confirmKillMethod}
             disabled={this.state.killMethod == null}

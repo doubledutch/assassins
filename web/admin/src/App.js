@@ -16,25 +16,28 @@
 
 import React, { PureComponent } from 'react'
 import './App.css'
-import client from '@doubledutch/admin-client'
+import client, { translate as t, useStrings } from '@doubledutch/admin-client'
 import { provideFirebaseConnectorToReactComponent } from '@doubledutch/firebase-connector'
+import i18n from './i18n'
 import Avatar from './Avatar'
+
+useStrings(i18n)
 
 const defaultKillMethods = [
   {
     title: '📇',
-    description: 'You accept a business card from the target agent',
-    instructions: 'Hand your business card to the target',
+    description: t('bizCardDes'),
+    instructions: t('bizCardInstructions'),
   },
   {
     title: '😄',
-    description: 'The target agent places a sticker on you without you knowing',
-    instructions: 'Place a sticker on the target without them knowing',
+    description: t('stickerDes'),
+    instructions: t('stickerInstructions'),
   },
   {
     title: '📸',
-    description: 'The target agent takes a photo with you and him/herself',
-    instructions: 'Take a photo with yourself and the target',
+    description: t('photoDes'),
+    instructions: t('photoInstructions'),
   },
   { title: '🙂', description: '', instructions: '' },
 ]
@@ -102,40 +105,38 @@ class App extends PureComponent {
           <div>
             {isGameInProgress ? (
               <div className="gameState">
-                Game is in progress <button onClick={this.abortGame}>Abort</button>
+                {t('gameProgress')} <button onClick={this.abortGame}>{t('abort')}</button>
               </div>
             ) : (
-              <div className="gameState">
-                No game in progress (Attendees marked as game admin can start a game)
-              </div>
+              <div className="gameState">{t('noGame')}</div>
             )}
             <div className="userListContainer">
               <h4>
-                Non-player Attendees ({nonPlayers.length}){' '}
+                {t('nonPlayers', { players: nonPlayers.length })}{' '}
                 <button
                   disabled={isGameInProgress || !nonPlayers || !nonPlayers.length}
                   onClick={this.addAllPlayers}
                 >
-                  Add ALL &gt;&gt;
+                  {t('addALL')} &gt;&gt;
                 </button>
               </h4>
               <ul className="userList">{nonPlayers.map(user => this.renderUser(user, false))}</ul>
             </div>
             <div className="userListContainer">
               <h4>
-                Players ({players.length}){' '}
+                {t('players', { players: players.length })}{' '}
                 <button
                   disabled={isGameInProgress || !players.length}
                   onClick={this.removeAllPlayers}
                 >
-                  &lt;&lt; Remove ALL
+                  &lt;&lt; {t('removeALL')}
                 </button>
               </h4>
               <ul className="userList">{players.map(user => this.renderUser(user, true))}</ul>
             </div>
             <div>
               <h4>
-                Custom Elimination Methods <button onClick={this.resetMethods}>Reset</button>
+                {t('custom')} <button onClick={this.resetMethods}>{t('reset')}</button>
               </h4>
               <ol className="methods">
                 {[0, 1, 2, 3].map(i => (
@@ -169,7 +170,7 @@ class App extends PureComponent {
             </div>
           </div>
         ) : (
-          <div>Loading...</div>
+          <div>{t('loading')}</div>
         )}
       </div>
     )
@@ -178,7 +179,7 @@ class App extends PureComponent {
   renderUser(user, isPlayer) {
     const { id, firstName, lastName } = user
     const action = isPlayer ? x => this.removePlayer(x) : x => this.addPlayer(x)
-    const actionText = isPlayer ? '< Remove' : 'Add >'
+    const actionText = isPlayer ? t('remove') : t('add')
     return (
       <li key={id}>
         {!this.state.isGameInProgress && (
@@ -193,11 +194,11 @@ class App extends PureComponent {
         </p>
         {this.isAdmin(id) ? (
           <button className="is admin" onClick={() => this.setAdmin(id, false)}>
-            Remove admin
+            {t('removeAdmin')}
           </button>
         ) : (
           <button className="admin" onClick={() => this.setAdmin(id, true)}>
-            Make admin
+            {t('makeAdmin')}
           </button>
         )}
       </li>
@@ -230,9 +231,7 @@ class App extends PureComponent {
       return players
     }, {})
     const nonPlayers = attendees ? attendees.filter(a => !playersById[a.id]) : null
-    if (
-      window.confirm(`Are you sure you want to add all ${nonPlayers.length} attendees as players?`)
-    ) {
+    if (window.confirm(t('removeAllConfirm', { players: nonPlayers.length }))) {
       attendees.forEach(p => this.addPlayer(p))
     }
   }
@@ -243,18 +242,14 @@ class App extends PureComponent {
 
   removeAllPlayers = () => {
     const { players } = this.state
-    if (window.confirm(`Are you sure you want to remove all ${players.length} players?`)) {
+    if (window.confirm(t('addAllConfirm', { players: players.length }))) {
       players.forEach(p => this.removePlayer(p))
     }
   }
 
   abortGame = () => {
     const { fbc } = this.props
-    if (
-      window.confirm(
-        `Are you sure you want to abort this game with ${this.state.players.length} players?`,
-      )
-    ) {
+    if (window.confirm(t('abortGame', { players: this.state.players.length }))) {
       const killsRef = fbc.database.public.allRef('kills')
       const targetsRef = fbc.database.public.adminRef('targets')
       killsRef.remove()
@@ -281,9 +276,7 @@ class App extends PureComponent {
       .update({ instructions: e.target.value })
 
   resetMethods = () => {
-    if (
-      window.confirm('Are you sure you want to reset the elimination methods back to the defaults?')
-    ) {
+    if (window.confirm(t('resetConfirm'))) {
       this.props.fbc.database.public.adminRef('killMethods').set(defaultKillMethods)
     }
   }
