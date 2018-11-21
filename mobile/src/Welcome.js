@@ -15,7 +15,8 @@
  */
 
 import React, { PureComponent } from 'react'
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View, translate as t } from 'react-native'
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { translate as t } from '@doubledutch/rn-client'
 import Box from './Box'
 import Button from './Button'
 import Header from './Header'
