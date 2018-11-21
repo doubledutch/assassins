@@ -15,7 +15,8 @@
  */
 
 import React, { PureComponent } from 'react'
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View, translate as t } from 'react-native'
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { translate as t } from '@doubledutch/rn-client'
 import Box from './Box'
 import Button from './Button'
 import Header from './Header'
@@ -24,7 +25,7 @@ import Carousel from './Carousel'
 import Smiley from './Smiley'
 import { killMethodImages } from './images'
 
-const helpTexts = [t('helpText1'), t('helpText2'), t('helpText3'), t('helpText4')]
+const helpTexts = [t('helpTextI'), t('helpTextII'), t('helpTextIII'), t('helpTextIV')]
 
 export default class Welcome extends PureComponent {
   state = {
