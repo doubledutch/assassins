@@ -25,7 +25,7 @@ import Carousel from './Carousel'
 import Smiley from './Smiley'
 import { killMethodImages } from './images'
 
-const helpTexts = [t('helpTextI'), t('helpTextII'), t('helpTextIII'), t('helpTextIV')]
+const helpTexts = [t('helpText1'), t('helpText2'), t('helpText3'), t('helpText4')]
 
 export default class Welcome extends PureComponent {
   state = {
