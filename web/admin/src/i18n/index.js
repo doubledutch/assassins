@@ -1,5 +1,5 @@
-import enUS from './assassins.admin.en-US.json'
-// import deDE from './assassins.admin.de-DE.json'
+import enUS from './en-us/assassins.admin.json'
+// import deDE from './de-de/assassins.admin.json'
 
 export default {
   '': enUS,
