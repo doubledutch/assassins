@@ -128,6 +128,7 @@ class HomeView extends PureComponent {
   }
 
   render() {
+    const { suggestedTitle } = this.props
     const {
       currentUser,
       isAdmin,
@@ -142,7 +143,7 @@ class HomeView extends PureComponent {
     const me = players.find(u => u.id === currentUser.id)
     return (
       <View style={this.s.container}>
-        <TitleBar title={t('appTitle')} client={client} signin={this.signin} />
+        <TitleBar title={suggestedTitle || t('appTitle')} client={client} signin={this.signin} />
         {isAdmin && (
           <View style={isAdminExpanded ? { flex: 1 } : null}>
             <Button
