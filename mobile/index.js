@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
-const Bazaar = require('bazaar-client')
+import { AppRegistry } from 'react-native'
+import HomeView from './src/home-view'
 
-module.exports = Bazaar
+AppRegistry.registerComponent('assassins', () => HomeView)
+AppRegistry.registerComponent('section', () => HomeView)
