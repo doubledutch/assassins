@@ -668,7 +668,7 @@ const createStyles = ({ primaryColor }) =>
     container: {
       flex: 1,
       backgroundColor: new Color({
-        ...new Color(primaryColor).limitLightness(0.3).hsv(),
+        ...new Color(primaryColor).limitLightness(0.3).minLightness(0.3).hsv(),
         s: 0.15,
       }).rgbString(),
     },
