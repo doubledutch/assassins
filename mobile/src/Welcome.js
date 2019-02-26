@@ -25,8 +25,6 @@ import Carousel from './Carousel'
 import Smiley from './Smiley'
 import { killMethodImages } from './images'
 
-const helpTexts = [t('helpText1'), t('helpText2'), t('helpText3'), t('helpText4')]
-
 export default class Welcome extends PureComponent {
   state = {
     showHelp: true,
@@ -37,6 +35,8 @@ export default class Welcome extends PureComponent {
     const { showHelp, canAccept } = this.state
     const { currentUser } = this.props
     if (showHelp) {
+      const helpTexts = [t('helpText1'), t('helpText2'), t('helpText3'), t('helpText4')]
+
       return (
         <View style={s.buttonBottomContainer}>
           <View>
