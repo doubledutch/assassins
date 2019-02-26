@@ -15,11 +15,10 @@
  */
 
 import React, { PureComponent } from 'react'
-import { Alert, StyleSheet, TouchableOpacity, View, FlatList, translate as t } from 'react-native'
-import client, { Avatar, Color } from '@doubledutch/rn-client'
+import { Alert, StyleSheet, View, FlatList } from 'react-native'
+import client, { Avatar, translate as t } from '@doubledutch/rn-client'
 import Button from './Button'
 import Text from './Text'
-import colors from './colors'
 
 export default class Admin extends PureComponent {
   constructor() {
@@ -122,7 +121,7 @@ export default class Admin extends PureComponent {
 
   _abortGame = () => {
     const { db } = this.props
-    Alert.alert(t('abortGame'), t('sure'), [
+    Alert.alert(t('abort'), t('sure'), [
       { text: t('cancel'), style: 'cancel' },
       {
         text: 'OK',
