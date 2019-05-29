@@ -31,7 +31,6 @@ import QRCodeScanner from 'react-native-qrcode-scanner'
 
 import client, { Avatar, Color, TitleBar, translate as t, useStrings } from '@doubledutch/rn-client'
 import { provideFirebaseConnectorToReactComponent } from '@doubledutch/firebase-connector'
-import firebase from 'firebase/app'
 import Admin from './Admin'
 import Box from './Box'
 import Button from './Button'
@@ -107,7 +106,7 @@ class HomeView extends PureComponent {
           if (longLivedToken) {
             // Attendee appears to be an admin. Log out and log in w/ admin token.
             const switchToAdmin = async () => {
-              await firebase.auth().signOut()
+              await fbc.firebase.auth().signOut()
               client.longLivedToken = longLivedToken
               await fbc.signinAdmin()
               // We are now logged in as admin
@@ -124,7 +123,7 @@ class HomeView extends PureComponent {
   }
 
   componentWillUnmount() {
-    firebase.auth().signOut()
+    this.props.fbc.firebase.auth().signOut()
   }
 
   render() {
@@ -668,7 +667,10 @@ const createStyles = ({ primaryColor }) =>
     container: {
       flex: 1,
       backgroundColor: new Color({
-        ...new Color(primaryColor).limitLightness(0.3).minLightness(0.3).hsv(),
+        ...new Color(primaryColor)
+          .limitLightness(0.3)
+          .minLightness(0.3)
+          .hsv(),
         s: 0.15,
       }).rgbString(),
     },
