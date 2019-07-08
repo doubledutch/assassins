@@ -4,7 +4,7 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
-    "@doubledutch/admin-client": "^2.1.2",
+    "@doubledutch/admin-client": "^2.2.3",
     "@doubledutch/firebase-connector": "^4.1.2",
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
