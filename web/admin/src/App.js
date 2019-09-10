@@ -105,38 +105,40 @@ class App extends PureComponent {
         <h1 className="extTitle">{t('title')}</h1>
         {attendees ? (
           <div>
-            {isGameInProgress ? (
-              <div className="gameState">
-                {t('gameProgress')} <button onClick={this.abortGame}>{t('abort')}</button>
+            <div className="tableContainer">
+              {isGameInProgress ? (
+                <div className="gameState">
+                  {t('gameProgress')} <button onClick={this.abortGame}>{t('abort')}</button>
+                </div>
+              ) : (
+                <div className="gameState">{t('noGame')}</div>
+              )}
+              <div className="userListContainer">
+                <h4>
+                  {t('nonPlayers', { players: nonPlayers.length })}{' '}
+                  <button
+                    disabled={isGameInProgress || !nonPlayers || !nonPlayers.length}
+                    onClick={this.addAllPlayers}
+                  >
+                    {t('addALL')} &gt;&gt;
+                  </button>
+                </h4>
+                <ul className="userList">{nonPlayers.map(user => this.renderUser(user, false))}</ul>
               </div>
-            ) : (
-              <div className="gameState">{t('noGame')}</div>
-            )}
-            <div className="userListContainer">
-              <h4>
-                {t('nonPlayers', { players: nonPlayers.length })}{' '}
-                <button
-                  disabled={isGameInProgress || !nonPlayers || !nonPlayers.length}
-                  onClick={this.addAllPlayers}
-                >
-                  {t('addALL')} &gt;&gt;
-                </button>
-              </h4>
-              <ul className="userList">{nonPlayers.map(user => this.renderUser(user, false))}</ul>
+              <div className="userListContainer">
+                <h4>
+                  {t('players', { players: players.length })}{' '}
+                  <button
+                    disabled={isGameInProgress || !players.length}
+                    onClick={this.removeAllPlayers}
+                  >
+                    &lt;&lt; {t('removeALL')}
+                  </button>
+                </h4>
+                <ul className="userList">{players.map(user => this.renderUser(user, true))}</ul>
+              </div>
             </div>
-            <div className="userListContainer">
-              <h4>
-                {t('players', { players: players.length })}{' '}
-                <button
-                  disabled={isGameInProgress || !players.length}
-                  onClick={this.removeAllPlayers}
-                >
-                  &lt;&lt; {t('removeALL')}
-                </button>
-              </h4>
-              <ul className="userList">{players.map(user => this.renderUser(user, true))}</ul>
-            </div>
-            <div>
+            <div className="tableContainer">
               <h4>
                 {t('custom')} <button onClick={this.resetMethods}>{t('reset')}</button>
               </h4>
@@ -183,7 +185,7 @@ class App extends PureComponent {
     const action = isPlayer ? x => this.removePlayer(x) : x => this.addPlayer(x)
     const actionText = isPlayer ? t('remove') : t('add')
     return (
-      <li key={id}>
+      <li key={id} className="userCell">
         {!this.state.isGameInProgress && (
           <button className="move" onClick={() => action(user)}>
             {actionText}
