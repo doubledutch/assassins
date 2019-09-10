@@ -41,7 +41,7 @@ h4 {
 }
 
 ul.userList {
-  width: 370px;
+  width: 450px;
   height: 500px;
   overflow-y: auto;
   display: inline-block;
@@ -113,6 +113,15 @@ ol.methods input {
   font-size: 1em;
   margin-right: 0.7em;
   padding: 0.2em;
+}
+
+.searchBox {
+  height: 30px;
+  padding-left: 10px;
+  border-radius: 3px;
+  width: 130px;
+  margin-right: 10px;
+  border: 0.75px solid #DCDCDC;
 }
 
 .method-icon {

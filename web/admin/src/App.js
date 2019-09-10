@@ -48,6 +48,8 @@ class App extends PureComponent {
     players: [],
     admins: [],
     killMethods: defaultKillMethods,
+    search: '',
+    searchRemove: '',
     isGameInProgress: true, // Assume game is in progress until we find out otherwise.
   }
 
@@ -94,12 +96,14 @@ class App extends PureComponent {
   }
 
   render() {
-    const { attendees, killMethods, players, isGameInProgress } = this.state
+    const { attendees, killMethods, isGameInProgress, search, searchRemove, players } = this.state
+    const playersFiltered = this.filteredAttendees(players, searchRemove)
     const playersById = players.reduce((players, player) => {
       players[player.id] = player
       return players
     }, {})
     const nonPlayers = attendees ? attendees.filter(a => !playersById[a.id]) : null
+    const nonPlayersFiltered = this.filteredAttendees(players, search)
     return (
       <div className="App">
         <h1 className="extTitle">{t('title')}</h1>
@@ -115,6 +119,12 @@ class App extends PureComponent {
               )}
               <div className="userListContainer">
                 <h4>
+                  <input
+                    className="searchBox"
+                    value={this.state.search}
+                    onChange={e => this.setState({ search: e.target.value })}
+                    placeholder={t('search')}
+                  />
                   {t('nonPlayers', { players: nonPlayers.length })}{' '}
                   <button
                     disabled={isGameInProgress || !nonPlayers || !nonPlayers.length}
@@ -123,10 +133,18 @@ class App extends PureComponent {
                     {t('addALL')} &gt;&gt;
                   </button>
                 </h4>
-                <ul className="userList">{nonPlayers.map(user => this.renderUser(user, false))}</ul>
+                <ul className="userList">
+                  {nonPlayersFiltered.map(user => this.renderUser(user, false))}
+                </ul>
               </div>
               <div className="userListContainer">
                 <h4>
+                  <input
+                    className="searchBox"
+                    value={this.state.searchRemove}
+                    onChange={e => this.setState({ searchRemove: e.target.value })}
+                    placeholder={t('search')}
+                  />
                   {t('players', { players: players.length })}{' '}
                   <button
                     disabled={isGameInProgress || !players.length}
@@ -135,7 +153,9 @@ class App extends PureComponent {
                     &lt;&lt; {t('removeALL')}
                   </button>
                 </h4>
-                <ul className="userList">{players.map(user => this.renderUser(user, true))}</ul>
+                <ul className="userList">
+                  {playersFiltered.map(user => this.renderUser(user, true))}
+                </ul>
               </div>
             </div>
             <div className="tableContainer">
@@ -178,6 +198,16 @@ class App extends PureComponent {
         )}
       </div>
     )
+  }
+
+  filteredAttendees = (list, search) => {
+    if (search) {
+      return list.filter(user => {
+        const name = `${user.firstName.toLowerCase()} ${user.lastName.toLowerCase()}`
+        return name.includes(search.toLowerCase())
+      })
+    }
+    return list
   }
 
   renderUser(user, isPlayer) {

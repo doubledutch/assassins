@@ -23,5 +23,6 @@
   "removeAllConfirm": "Are you sure you want to remove all ${players} players?",
   "abortGame": "Are you sure you want to abort this game with ${players} players?",
   "resetConfirm": "Are you sure you want to reset the elimination methods back to the defaults?",
-  "title": "Ice Breaker Espionage"
+  "title": "Ice Breaker Espionage",
+  "search": "Search"
 }
