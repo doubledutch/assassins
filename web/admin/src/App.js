@@ -233,7 +233,7 @@ class App extends PureComponent {
       return players
     }, {})
     const nonPlayers = attendees ? attendees.filter(a => !playersById[a.id]) : null
-    if (window.confirm(t('removeAllConfirm', { players: nonPlayers.length }))) {
+    if (window.confirm(t('addAllConfirm', { players: nonPlayers.length }))) {
       attendees.forEach(p => this.addPlayer(p))
     }
   }
@@ -244,7 +244,7 @@ class App extends PureComponent {
 
   removeAllPlayers = () => {
     const { players } = this.state
-    if (window.confirm(t('addAllConfirm', { players: players.length }))) {
+    if (window.confirm(t('removeAllConfirm', { players: players.length }))) {
       players.forEach(p => this.removePlayer(p))
     }
   }
