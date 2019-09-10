@@ -106,3 +106,7 @@ ol.methods input {
 .method-description, .method-instructions {
   width: 19em;
 }
+
+.extTitle {
+  font-weight: 300;
+}

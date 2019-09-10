@@ -20,6 +20,7 @@ import client, { translate as t, useStrings } from '@doubledutch/admin-client'
 import { provideFirebaseConnectorToReactComponent } from '@doubledutch/firebase-connector'
 import i18n from './i18n'
 import Avatar from './Avatar'
+import '@doubledutch/react-components/lib/base.css'
 
 useStrings(i18n)
 
@@ -101,6 +102,7 @@ class App extends PureComponent {
     const nonPlayers = attendees ? attendees.filter(a => !playersById[a.id]) : null
     return (
       <div className="App">
+        <h1 className="extTitle">{t('title')}</h1>
         {attendees ? (
           <div>
             {isGameInProgress ? (

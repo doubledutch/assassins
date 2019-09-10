@@ -22,5 +22,6 @@
   "addAllConfirm": "Are you sure you want to add all ${players} attendees as players?",
   "removeAllConfirm": "Are you sure you want to remove all ${players} players?",
   "abortGame": "Are you sure you want to abort this game with ${players} players?",
-  "resetConfirm": "Are you sure you want to reset the elimination methods back to the defaults?"
+  "resetConfirm": "Are you sure you want to reset the elimination methods back to the defaults?",
+  "title": "Ice Breaker Espionage"
 }
