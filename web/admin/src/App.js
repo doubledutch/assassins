@@ -103,7 +103,7 @@ class App extends PureComponent {
       return players
     }, {})
     const nonPlayers = attendees ? attendees.filter(a => !playersById[a.id]) : null
-    const nonPlayersFiltered = this.filteredAttendees(players, search)
+    const nonPlayersFiltered = this.filteredAttendees(nonPlayers, search)
     return (
       <div className="App">
         <h1 className="extTitle">{t('title')}</h1>
@@ -125,10 +125,10 @@ class App extends PureComponent {
                     onChange={e => this.setState({ search: e.target.value })}
                     placeholder={t('search')}
                   />
-                  {t('nonPlayers', { players: nonPlayers.length })}{' '}
+                  {t('nonPlayers', { players: nonPlayersFiltered.length })}{' '}
                   <button
                     disabled={isGameInProgress || !nonPlayers || !nonPlayers.length}
-                    onClick={this.addAllPlayers}
+                    onClick={() => this.addAllPlayers(nonPlayersFiltered)}
                   >
                     {t('addALL')} &gt;&gt;
                   </button>
@@ -148,7 +148,7 @@ class App extends PureComponent {
                   {t('players', { players: players.length })}{' '}
                   <button
                     disabled={isGameInProgress || !players.length}
-                    onClick={this.removeAllPlayers}
+                    onClick={() => this.removeAllPlayers(playersFiltered)}
                   >
                     &lt;&lt; {t('removeALL')}
                   </button>
@@ -258,15 +258,10 @@ class App extends PureComponent {
     this.props.fbc.database.public.usersRef(user.id).set(user)
   }
 
-  addAllPlayers = () => {
-    const { attendees, players } = this.state
-    const playersById = players.reduce((players, player) => {
-      players[player.id] = player
-      return players
-    }, {})
-    const nonPlayers = attendees ? attendees.filter(a => !playersById[a.id]) : null
+  addAllPlayers = nonPlayers => {
     if (window.confirm(t('addAllConfirm', { players: nonPlayers.length }))) {
-      attendees.forEach(p => this.addPlayer(p))
+      nonPlayers.forEach(p => this.addPlayer(p))
+      this.setState({ search: '', searchRemove: '' })
     }
   }
 
@@ -274,10 +269,10 @@ class App extends PureComponent {
     this.props.fbc.database.public.usersRef(user.id).remove()
   }
 
-  removeAllPlayers = () => {
-    const { players } = this.state
+  removeAllPlayers = players => {
     if (window.confirm(t('removeAllConfirm', { players: players.length }))) {
       players.forEach(p => this.removePlayer(p))
+      this.setState({ search: '', searchRemove: '' })
     }
   }
 
