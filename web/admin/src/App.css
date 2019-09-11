@@ -30,6 +30,12 @@ h4 {
   padding: 10px;
 }
 
+.helpText {
+  margin-top: 220px;
+  flex: 1;
+  text-align: center;
+}
+
 .tableContainer {
   flex: 1;
   box-sizing: border-box;

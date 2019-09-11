@@ -135,6 +135,7 @@ class App extends PureComponent {
                 </h4>
                 <ul className="userList">
                   {nonPlayersFiltered.map(user => this.renderUser(user, false))}
+                  {nonPlayersFiltered.length === 0 && <p className="helpText">{t('noPlayers')}</p>}
                 </ul>
               </div>
               <div className="userListContainer">
@@ -155,6 +156,7 @@ class App extends PureComponent {
                 </h4>
                 <ul className="userList">
                   {playersFiltered.map(user => this.renderUser(user, true))}
+                  {playersFiltered.length === 0 && <p className="helpText">{t('noPlayers')}</p>}
                 </ul>
               </div>
             </div>

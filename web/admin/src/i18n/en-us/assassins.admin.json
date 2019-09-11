@@ -24,5 +24,6 @@
   "abortGame": "Are you sure you want to abort this game with ${players} players?",
   "resetConfirm": "Are you sure you want to reset the elimination methods back to the defaults?",
   "title": "Ice Breaker Espionage",
-  "search": "Search"
+  "search": "Search",
+  "noPlayers": "No Players Available"
 }
