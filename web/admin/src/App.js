@@ -203,7 +203,7 @@ class App extends PureComponent {
   }
 
   filteredAttendees = (list, search) => {
-    if (search) {
+    if (search.trim()) {
       return list.filter(user => {
         const name = `${user.firstName.toLowerCase()} ${user.lastName.toLowerCase()}`
         return name.includes(search.toLowerCase())
