@@ -518,14 +518,14 @@ class HomeView extends PureComponent {
   _keyExtractor = u => u.id
 
   _renderListPlayer = ({ item }) => (
-    <Box style={[s.listPlayer, this.state.killed[item.id] ? { opacity: 0.6 } : null]}>
+    <Box style={s.listPlayer}>
       <Avatar user={item} size={50} client={client} style={{ marginRight: 18 }} />
       <View style={{ justifyContent: 'space-between', flex: 1 }}>
-        <Text style={{ fontSize: 18 }}>{this.truncateName(item)}</Text>
+        <Text style={[{ fontSize: 18 }, this.state.killed[item.id] ? { opacity: 0.6 } : null]}>{this.truncateName(item)}</Text>
         <View style={[{ flexDirection: 'row', flexWrap: 'wrap' }]}>
           {this.state.killsBy[item.id] && (
             <View style={[s.row, { marginRight: 5 }]}>
-              <Text>{t('eliminated')}: </Text>
+              <Text style={this.state.killed[item.id] ? { opacity: 0.6 } : null}>{t('eliminated')}: </Text>
               {this.state.killsBy[item.id].map(id => (
                 <Avatar
                   style={s.smallAvatar}
@@ -539,7 +539,7 @@ class HomeView extends PureComponent {
           )}
           {this.state.killed[item.id] && (
             <View style={s.row}>
-              <Text>{t('eliminatedBy')}</Text>
+              <Text style={this.state.killed[item.id] ? { opacity: 0.6 } : null}>{t('eliminatedBy')}</Text>
               <Avatar
                 style={s.smallAvatar}
                 user={this._whoAssassinated(item.id)}

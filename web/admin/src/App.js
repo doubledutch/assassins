@@ -20,6 +20,7 @@ import client, { translate as t, useStrings } from '@doubledutch/admin-client'
 import { provideFirebaseConnectorToReactComponent } from '@doubledutch/firebase-connector'
 import i18n from './i18n'
 import Avatar from './Avatar'
+import '@doubledutch/react-components/lib/base.css'
 
 useStrings(i18n)
 
@@ -47,6 +48,8 @@ class App extends PureComponent {
     players: [],
     admins: [],
     killMethods: defaultKillMethods,
+    search: '',
+    searchRemove: '',
     isGameInProgress: true, // Assume game is in progress until we find out otherwise.
   }
 
@@ -93,48 +96,71 @@ class App extends PureComponent {
   }
 
   render() {
-    const { attendees, killMethods, players, isGameInProgress } = this.state
+    const { attendees, killMethods, isGameInProgress, search, searchRemove, players } = this.state
+    const playersFiltered = this.filteredAttendees(players, searchRemove)
     const playersById = players.reduce((players, player) => {
       players[player.id] = player
       return players
     }, {})
     const nonPlayers = attendees ? attendees.filter(a => !playersById[a.id]) : null
+    const nonPlayersFiltered = this.filteredAttendees(nonPlayers, search)
     return (
       <div className="App">
+        <h1 className="extTitle">{t('title')}</h1>
         {attendees ? (
           <div>
-            {isGameInProgress ? (
-              <div className="gameState">
-                {t('gameProgress')} <button onClick={this.abortGame}>{t('abort')}</button>
+            <div className="tableContainer">
+              {isGameInProgress ? (
+                <div className="gameState">
+                  {t('gameProgress')} <button onClick={this.abortGame}>{t('abort')}</button>
+                </div>
+              ) : (
+                <div className="gameState">{t('noGame')}</div>
+              )}
+              <div className="userListContainer">
+                <h4>
+                  <input
+                    className="searchBox"
+                    value={this.state.search}
+                    onChange={e => this.setState({ search: e.target.value })}
+                    placeholder={t('search')}
+                  />
+                  {t('nonPlayers', { players: nonPlayersFiltered.length })}{' '}
+                  <button
+                    disabled={isGameInProgress || !nonPlayers || !nonPlayers.length}
+                    onClick={() => this.addAllPlayers(nonPlayersFiltered)}
+                  >
+                    {t('addALL')} &gt;&gt;
+                  </button>
+                </h4>
+                <ul className="userList">
+                  {nonPlayersFiltered.map(user => this.renderUser(user, false))}
+                  {nonPlayersFiltered.length === 0 && <p className="helpText">{t('noPlayers')}</p>}
+                </ul>
               </div>
-            ) : (
-              <div className="gameState">{t('noGame')}</div>
-            )}
-            <div className="userListContainer">
-              <h4>
-                {t('nonPlayers', { players: nonPlayers.length })}{' '}
-                <button
-                  disabled={isGameInProgress || !nonPlayers || !nonPlayers.length}
-                  onClick={this.addAllPlayers}
-                >
-                  {t('addALL')} &gt;&gt;
-                </button>
-              </h4>
-              <ul className="userList">{nonPlayers.map(user => this.renderUser(user, false))}</ul>
+              <div className="userListContainer">
+                <h4>
+                  <input
+                    className="searchBox"
+                    value={this.state.searchRemove}
+                    onChange={e => this.setState({ searchRemove: e.target.value })}
+                    placeholder={t('search')}
+                  />
+                  {t('players', { players: players.length })}{' '}
+                  <button
+                    disabled={isGameInProgress || !players.length}
+                    onClick={() => this.removeAllPlayers(playersFiltered)}
+                  >
+                    &lt;&lt; {t('removeALL')}
+                  </button>
+                </h4>
+                <ul className="userList">
+                  {playersFiltered.map(user => this.renderUser(user, true))}
+                  {playersFiltered.length === 0 && <p className="helpText">{t('noPlayers')}</p>}
+                </ul>
+              </div>
             </div>
-            <div className="userListContainer">
-              <h4>
-                {t('players', { players: players.length })}{' '}
-                <button
-                  disabled={isGameInProgress || !players.length}
-                  onClick={this.removeAllPlayers}
-                >
-                  &lt;&lt; {t('removeALL')}
-                </button>
-              </h4>
-              <ul className="userList">{players.map(user => this.renderUser(user, true))}</ul>
-            </div>
-            <div>
+            <div className="tableContainer">
               <h4>
                 {t('custom')} <button onClick={this.resetMethods}>{t('reset')}</button>
               </h4>
@@ -176,12 +202,22 @@ class App extends PureComponent {
     )
   }
 
+  filteredAttendees = (list, search) => {
+    if (search.trim()) {
+      return list.filter(user => {
+        const name = `${user.firstName.toLowerCase()} ${user.lastName.toLowerCase()}`
+        return name.includes(search.toLowerCase())
+      })
+    }
+    return list
+  }
+
   renderUser(user, isPlayer) {
     const { id, firstName, lastName } = user
     const action = isPlayer ? x => this.removePlayer(x) : x => this.addPlayer(x)
     const actionText = isPlayer ? t('remove') : t('add')
     return (
-      <li key={id}>
+      <li key={id} className="userCell">
         {!this.state.isGameInProgress && (
           <button className="move" onClick={() => action(user)}>
             {actionText}
@@ -224,15 +260,10 @@ class App extends PureComponent {
     this.props.fbc.database.public.usersRef(user.id).set(user)
   }
 
-  addAllPlayers = () => {
-    const { attendees, players } = this.state
-    const playersById = players.reduce((players, player) => {
-      players[player.id] = player
-      return players
-    }, {})
-    const nonPlayers = attendees ? attendees.filter(a => !playersById[a.id]) : null
-    if (window.confirm(t('removeAllConfirm', { players: nonPlayers.length }))) {
-      attendees.forEach(p => this.addPlayer(p))
+  addAllPlayers = nonPlayers => {
+    if (window.confirm(t('addAllConfirm', { players: nonPlayers.length }))) {
+      nonPlayers.forEach(p => this.addPlayer(p))
+      this.setState({ search: '', searchRemove: '' })
     }
   }
 
@@ -240,10 +271,10 @@ class App extends PureComponent {
     this.props.fbc.database.public.usersRef(user.id).remove()
   }
 
-  removeAllPlayers = () => {
-    const { players } = this.state
-    if (window.confirm(t('addAllConfirm', { players: players.length }))) {
+  removeAllPlayers = players => {
+    if (window.confirm(t('removeAllConfirm', { players: players.length }))) {
       players.forEach(p => this.removePlayer(p))
+      this.setState({ search: '', searchRemove: '' })
     }
   }
 

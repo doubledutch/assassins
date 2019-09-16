@@ -15,7 +15,7 @@
  */
 
 .gameState {
-  margin: 0 0 0.3em 0;
+  margin: 0 0 1em 0;
 }
 
 h4 {
@@ -26,13 +26,34 @@ h4 {
   width: 40px;
 }
 
+.userCell {
+  padding: 10px;
+}
+
+.helpText {
+  margin-top: 220px;
+  flex: 1;
+  text-align: center;
+}
+
+.tableContainer {
+  flex: 1;
+  box-sizing: border-box;
+  margin: 20px 0px;
+  padding: 20px 20px 20px 20px;
+  border-radius: 5px;
+  border: 1px solid #E3ECF8;
+  background-color: #FFFFFF;
+}
+
 ul.userList {
-  width: 370px;
+  width: 500px;
   height: 500px;
   overflow-y: auto;
   display: inline-block;
   list-style-type: none;
-  border: 1px solid gray;
+  border-radius: 5px;
+  border: 1px solid #E3ECF8;
   -webkit-margin-before: 0;
   -webkit-margin-after: 0;
   -webkit-padding-start: 0;
@@ -41,10 +62,11 @@ ul.userList {
 }
 
 ul.userList li {
-  padding: 3px;
+  padding: 5px;
   flex: 1;
   display: flex;
   flex-direction: nowrap;
+  border-bottom: 1px solid #E3ECF8;
 }
 
 ul.userList li p {
@@ -79,6 +101,7 @@ button.admin {
   margin-left: 10px;
   height: 20px;
   margin-top: 5px;
+  border-radius: 4px;
   background-color: #73aaf3;
 }
 
@@ -98,11 +121,28 @@ ol.methods input {
   padding: 0.2em;
 }
 
+.searchBox {
+  height: 30px;
+  padding-left: 10px;
+  border-radius: 3px;
+  width: 130px;
+  margin-right: 10px;
+  border: 0.75px solid #DCDCDC;
+}
+
 .method-icon {
   width: 2em;
+  border-radius: 5px;
+  border-width: 1px;
   text-align: center;
 }
 
 .method-description, .method-instructions {
   width: 19em;
+  border-radius: 5px;
+  border-width: 1px;
+}
+
+.extTitle {
+  font-weight: 300;
 }
