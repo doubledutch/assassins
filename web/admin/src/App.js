@@ -190,6 +190,13 @@ class App extends PureComponent {
                       value={killMethods[i].instructions}
                       onChange={this.updateMethodInstructions(i)}
                     />
+                    {(!killMethods[i].title ||
+                      !killMethods[i].description ||
+                      !killMethods[i].instructions) && (
+                      <p className="methodHelpText">
+                        *Please complete this section before beginning your game
+                      </p>
+                    )}
                   </li>
                 ))}
               </ol>
