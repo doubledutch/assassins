@@ -137,6 +137,12 @@ ol.methods input {
   text-align: center;
 }
 
+.methodHelpText {
+  margin: 0;
+  color: red;
+  font-size: 12px;
+}
+
 .method-description, .method-instructions {
   width: 19em;
   border-radius: 5px;
