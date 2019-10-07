@@ -71,7 +71,7 @@ export default class Admin extends PureComponent {
     <View style={s.listPlayer}>
       {this.state.targets ? (
         !this.state.killed[item.id] && (
-          <Button style={s.remove} text="☠️" onPress={() => this.props.markAssassinated(item)} />
+          <Button style={s.remove} text="🛑" onPress={() => this.props.markAssassinated(item)} />
         )
       ) : (
         <Button style={s.remove} text="❌️" onPress={() => this._removePlayer(item)} />
