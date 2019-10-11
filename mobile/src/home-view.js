@@ -26,7 +26,7 @@ import {
   View,
 } from 'react-native'
 
-import QRCode from 'react-native-qrcode'
+import QRCode from '@doubledutch/react-native-qrcode'
 import QRCodeScanner from 'react-native-qrcode-scanner'
 
 import client, { Avatar, Color, TitleBar, translate as t, useStrings } from '@doubledutch/rn-client'
