@@ -27,8 +27,8 @@ import {
 } from 'react-native'
 
 import QRCode from '@doubledutch/react-native-qrcode'
+import QRCodeOriginal from 'react-native-qrcode'
 import QRCodeScanner from 'react-native-qrcode-scanner'
-
 import client, { Avatar, Color, TitleBar, translate as t, useStrings } from '@doubledutch/rn-client'
 import { provideFirebaseConnectorToReactComponent } from '@doubledutch/firebase-connector'
 import Admin from './Admin'
@@ -42,8 +42,9 @@ import Welcome from './Welcome'
 import Database from './db'
 import i18n from './i18n'
 import { killMethodImages } from './images'
-
 import colors from './colors'
+
+const isWebKitVersion = client.clientVersion.major > 8 && client.clientVersion.minor > 2
 
 useStrings(i18n)
 
@@ -241,12 +242,21 @@ class HomeView extends PureComponent {
               <View style={[s.section, this.s.container]}>
                 <Text style={{ fontSize: 16 }}>{t('codeInstructions')}</Text>
                 <View style={s.qrcode}>
-                  <QRCode
-                    value={JSON.stringify(currentUser.id)}
-                    size={this.renderCode(height)}
-                    bgColor="#000000"
-                    fgColor="#ffffff"
-                  />
+                  {isWebKitVersion ? (
+                    <QRCode
+                      value={JSON.stringify(currentUser.id)}
+                      size={this.renderCode(height)}
+                      bgColor="#000000"
+                      fgColor="#ffffff"
+                    /> 
+                    ) : (
+                    <QRCodeOriginal
+                      value={JSON.stringify(currentUser.id)}
+                      size={this.renderCode(height)}
+                      bgColor="#000000"
+                      fgColor="#ffffff"
+                    />
+                  )}
                 </View>
               </View>
             </View>
