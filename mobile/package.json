@@ -8,11 +8,12 @@
   },
   "dependencies": {
     "@doubledutch/firebase-connector": "^4.2.1",
+    "@doubledutch/react-native-qrcode": "^1.1.0",
     "@doubledutch/rn-client": "^5.0.1",
     "react": "16.8.3",
     "react-native": "0.59.4",
     "react-native-camera": "2.5.0",
-    "@doubledutch/react-native-qrcode": "^1.0.0",
+    "react-native-qrcode": "^0.2.7",
     "react-native-qrcode-scanner": "0.0.28",
     "react-native-video": "4.4.1",
     "react-native-youtube": "1.1.0",
